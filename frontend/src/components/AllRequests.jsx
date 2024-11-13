@@ -4,10 +4,10 @@ import { get, post } from '../services/ApiEndpoint';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FaFilePdf, FaTimes } from 'react-icons/fa';
-import { MdFolderZip, MdPreview } from 'react-icons/md';
-
+import { MdFolderZip, MdPreview, MdAssignmentAdd } from 'react-icons/md';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import ServiceRequestDetails from './ServiceRequestDetails';
 
 const AllRequests = () => {
   const { user } = useSelector(state => state.auth);
@@ -18,6 +18,7 @@ const AllRequests = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   console.log('🚀 ~ AllRequests ~ selectedInvoice:', selectedInvoice);
   const [emailList, setEmailList] = useState([]);
@@ -102,7 +103,7 @@ const AllRequests = () => {
     { label: 'IndustryDiv', key: 'industryDiv' },
     { label: 'BillingPlant', key: 'billingPlant' },
     { label: 'CustomerName', key: 'customerName' },
-    { label: 'Attachments', key: 'attachments' },
+    { label: 'Files', key: 'attachments' },
     { label: 'Actions', key: 'actions' },
   ];
 
@@ -110,11 +111,19 @@ const AllRequests = () => {
     setSelectedInvoice(invoice);
     setShowSidebar(true);
   };
-
   const closeSidebar = () => {
     setShowSidebar(false);
   };
 
+  const openModal = invoice => {
+    setSelectedInvoice(invoice);
+    console.log('hiiiii');
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
   // Handle input change for name or email search
   const handleInputChange = e => {
     const { value } = e.target;
@@ -273,13 +282,11 @@ const AllRequests = () => {
                     key={index}
                     className="border dark:hover:bg-gray-700 hover:bg-gray-200"
                   >
-                    <td className="p-2">
-                      <Link
-                        to={`/service-requests/${user?.role}/${invoice.serviceRequestId}`}
-                        className="text-blue-500 hover:underline"
-                      >
-                        {invoice.serviceRequestId}
-                      </Link>
+                    <td
+                      onClick={() => openModal(invoice)}
+                      className="p-2 text-blue-500 hover:underline"
+                    >
+                      {invoice.serviceRequestId}
                     </td>
                     <td className="p-2">{invoice.quotationNo}</td>
                     <td className="p-2">{invoice.quoteStatus}</td>
@@ -296,8 +303,17 @@ const AllRequests = () => {
                       </button>{' '}
                     </td>
                     <td className="p-2">
-                      <button onClick={() => openRightSidebar(invoice)}>
-                        <MdPreview className="text-xl" />
+                      <button>
+                        <span className="flex gap-2">
+                          <MdPreview
+                            onClick={() => openRightSidebar(invoice)}
+                            className="text-xl"
+                          />
+                          <MdAssignmentAdd
+                            onClick={() => openModal(invoice)}
+                            className="text-xl"
+                          />
+                        </span>
                       </button>{' '}
                     </td>
                   </tr>
@@ -326,10 +342,26 @@ const AllRequests = () => {
           Next
         </button>
       </div>
+      {/* Modal to show invoice details */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="relative bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300  rounded-lg w-[85vw]  h-[95vh] overflow-y-scroll shadow-lg border border-gray-300 dark:border-gray-700">
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100"
+            >
+              <FaTimes className="text-2xl" />
+            </button>
+
+            <ServiceRequestDetails selectedInvoice={selectedInvoice} />
+          </div>
+        </div>
+      )}
+
       {/* Right Sidebar */}
       <div>
         {showSidebar && (
-          <div className="fixed right-0 top-0 h-full w-96 bg-white dark:bg-gray-900 shadow-lg p-4 transition-transform duration-300">
+          <div className="fixed right-0 top-0 h-full w-96 bg-gray-50 dark:bg-gray-900 shadow-lg p-4 transition-transform duration-300">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold dark:text-white">
                 {selectedInvoice?.srStatus === 'InvoicingInProgress' ||

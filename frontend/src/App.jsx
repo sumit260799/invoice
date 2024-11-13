@@ -33,7 +33,7 @@ function App() {
   const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
-    dispatch(updateUser());
+    // dispatch(updateUser());
   }, [user]);
 
   return (

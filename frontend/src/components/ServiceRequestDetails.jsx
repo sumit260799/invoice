@@ -5,12 +5,13 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 import { FaEdit } from 'react-icons/fa';
 
-const ServiceRequestDetails = () => {
+const ServiceRequestDetails = ({ selectedInvoice }) => {
+  const invoice = selectedInvoice;
+  console.log('🚀 ~ ServiceRequestDetails ~ invoice:', invoice);
   const { serviceRequestId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
 
-  const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState(''); // Change email to name
   const { user } = useSelector(state => state.auth);
@@ -30,27 +31,11 @@ const ServiceRequestDetails = () => {
   useEffect(() => {
     fetchAllEmail();
   }, []);
-
-  const fetchInvoice = async () => {
-    try {
-      const response = await get(
-        `/api/user/display-report?serviceRequestId=${serviceRequestId}`
-      );
-      if (response.status === 200) {
-        setInvoice(response?.data?.displayReport);
-      } else {
-        toast.error('Failed to fetch service request details.');
-      }
-    } catch (error) {
-      toast.error(`Error fetching service request details: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchInvoice();
-  }, [serviceRequestId]);
+    if (invoice) {
+      setLoading(false); // Set loading to false when invoice data is available
+    }
+  }, [invoice]);
 
   const handleSubmit = async () => {
     if (!name) {
@@ -75,11 +60,9 @@ const ServiceRequestDetails = () => {
       if (response.status === 200) {
         toast.success(response?.data?.message);
         setName('');
-        fetchInvoice();
       } else if (response.status === 202) {
         toast.error(response?.data?.message);
         setName('');
-        fetchInvoice();
       } else {
         toast.error('Failed to assign email.');
       }
@@ -90,7 +73,7 @@ const ServiceRequestDetails = () => {
   const handleStatusSubmit = () => {};
   const handleReallocateSubmit = async () => {};
   return (
-    <div className="flex flex-col items-center bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400 rounded-lg min-h-screen">
+    <div className="flex flex-col items-center  rounded-lg min-h-screen">
       <div className="w-full  p-6">
         <h2 className="text-2xl font-bold mb-6 ">
           {invoice?.srStatus === 'Invoice In Progress' ||
@@ -130,7 +113,7 @@ const ServiceRequestDetails = () => {
           <div className="mb-4 space-y-2">
             <label
               htmlFor="name"
-              className="block font-semibold dark:text-gray-400 text-gray-800  text-sm"
+              className="block font-semibold dark:text-gray-300 text-gray-800  text-sm"
             >
               Enter Name:
             </label>
@@ -165,7 +148,7 @@ const ServiceRequestDetails = () => {
 
         {name && (
           <div className="mb-4">
-            <p className="font-semibold dark:text-gray-400 text-gray-800 ">
+            <p className="font-semibold dark:text-gray-300 text-gray-800 ">
               Entered Name: {name}
             </p>
             <button
@@ -178,7 +161,7 @@ const ServiceRequestDetails = () => {
         )}
 
         {loading ? (
-          <p className="dark:text-gray-400 text-gray-800 ">Loading...</p>
+          <p className="dark:text-gray-300 text-gray-800 ">Loading...</p>
         ) : invoice ? (
           <div className="overflow-x-auto">
             <table className="w-full  border border-gray-200 rounded-lg shadow-sm">
@@ -194,66 +177,66 @@ const ServiceRequestDetails = () => {
               </thead>
               <tbody>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Service Request ID
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice.serviceRequestId}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Quotation No
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice.quotationNo}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     QuoteStatus
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice.quoteStatus}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Billing Plant
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice.billingPlant}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Customer Name
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice.customerName}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Equipment Serial No
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice.equipmentSerialNo}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Model No
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice.modelNo}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800">
                     SrStatus
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 flex items-center space-x-2">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 flex items-center space-x-2">
                     {!isEditing ? (
                       <>
                         <span>{invoice.srStatus}</span>
@@ -286,18 +269,18 @@ const ServiceRequestDetails = () => {
                 </tr>
 
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Allocated To
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice?.allocatedTo_name} / {invoice?.allocatedTo_email}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Allocated At
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice?.allocatedAt
                       ? new Date(invoice.allocatedAt).toLocaleDateString(
                           'en-US',
@@ -314,36 +297,36 @@ const ServiceRequestDetails = () => {
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Allocated To For Invoice
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice?.reallocatedTo_name} /{' '}
                     {invoice?.reallocatedTo_email}
                   </td>
                 </tr>
 
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Approved At
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice?.approved}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Released At
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice?.releasedAt}
                   </td>
                 </tr>
                 <tr className="border-t">
-                  <td className="p-4 font-semibold dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 font-semibold dark:text-gray-300 text-gray-800 ">
                     Rejected At
                   </td>
-                  <td className="p-4 dark:text-gray-400 text-gray-800 ">
+                  <td className="p-4 dark:text-gray-300 text-gray-800 ">
                     {invoice?.rejectedAt}
                   </td>
                 </tr>
@@ -351,7 +334,7 @@ const ServiceRequestDetails = () => {
             </table>
           </div>
         ) : (
-          <p className="dark:text-gray-400 text-gray-800 ">
+          <p className="dark:text-gray-300 text-gray-800 ">
             No service request found.
           </p>
         )}
