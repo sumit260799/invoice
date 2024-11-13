@@ -261,7 +261,7 @@ const allocateServiceRequest = async (req, res) => {
       logEntry,
     });
   } catch (error) {
-    next(error);
+    next();
   }
 };
 
