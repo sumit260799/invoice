@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const serviceRequestSchema = new mongoose.Schema({
   serviceRequestId: {
@@ -13,19 +13,19 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   industryDiv: {
     type: String,
-    enum: ['BCP', 'GCI', 'SEM', 'Mining'],
+    enum: ["BCP", "GCI", "SEM", "Mining"],
   },
   zone: {
     type: String,
     enum: [
-      'Zone1',
-      'Zone2',
-      'Zone3',
-      'Zone4',
-      'Zone5',
-      'Zone6',
-      'Zone7',
-      'Zone8',
+      "Zone1",
+      "Zone2",
+      "Zone3",
+      "Zone4",
+      "Zone5",
+      "Zone6",
+      "Zone7",
+      "Zone8",
     ],
   },
   equipmentSerialNo: {
@@ -45,7 +45,7 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'users',
+    ref: "users",
   },
   remarks: {
     type: String,
@@ -59,26 +59,27 @@ const serviceRequestSchema = new mongoose.Schema({
   quoteStatus: {
     type: String,
     enum: [
-      'PendingRelease',
-      'ApprovalPending',
-      'BillingPending',
-      'Rejected',
-      'Billed',
+      "PendingRelease",
+      "ApprovalPending",
+      "BillingPending",
+      "Rejected",
+      "Billed",
     ],
-    default: 'PendingRelease',
+    // default: 'PendingRelease',
   },
 
   srStatus: {
     type: String,
     enum: [
-      'PendingForQuotationAllocation',
-      'OnHold',
-      'QuotationInProgress',
-      'PendingforInvoiceAllocation',
-      'InvoicingInProgress',
-      'Closed',
+      "PendingForQuotationAllocation",
+      "OnHold",
+      "Rejected",
+      "QuotationInProgress",
+      "PendingforInvoiceAllocation",
+      "InvoicingInProgress",
+      "Closed",
     ],
-    default: 'PendingForQuotationAllocation',
+    default: "PendingForQuotationAllocation",
   },
   allocatedTo_name: {
     type: String,
@@ -101,7 +102,7 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   reallocatedAt: {
     type: String,
-    ref: 'AdminCreateUser',
+    ref: "AdminCreateUser",
   },
   approvedAt: {
     type: Date,
@@ -149,5 +150,5 @@ const serviceRequestSchema = new mongoose.Schema({
 //   },
 // });
 
-const ServiceRequest = mongoose.model('ServiceRequest', serviceRequestSchema);
+const ServiceRequest = mongoose.model("ServiceRequest", serviceRequestSchema);
 module.exports = ServiceRequest;

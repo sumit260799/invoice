@@ -1,30 +1,28 @@
-import React, { useState } from 'react';
-import { FaFilePdf, FaTimes } from 'react-icons/fa';
+import React, { useState } from "react";
+import { FaFilePdf, FaTimes } from "react-icons/fa";
 
 const SideBar = ({
+  inputValue,
   selectedInvoice,
   closeSidebar,
   handleInputChange,
   handleRemarksChange,
   suggestions,
   handleSubmit,
+  handleSuggestionClick,
+  clearInput,
 }) => {
-  const [emailList, setEmailList] = useState([]);
-  const [inputValue, setInputValue] = useState([
-    { name: '', email: '', remarks: '' },
-  ]);
-
   return (
     <div className="fixed right-0 top-0 h-full w-96 bg-gray-50 dark:bg-gray-900 shadow-lg p-4 transition-transform duration-300">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold dark:text-white">
-          {selectedInvoice?.srStatus === 'InvoicingInProgress' ||
-          selectedInvoice?.srStatus === 'PendingforInvoiceAllocation' ||
-          selectedInvoice?.quoteStatus === 'BillingPending'
-            ? 'Allocate For Invoice'
-            : selectedInvoice?.srStatus === 'QuotationInProgress'
-            ? 'ReAllocate For Quotation'
-            : 'Allocate For Quotation'}
+          {selectedInvoice?.srStatus === "InvoicingInProgress" ||
+          selectedInvoice?.srStatus === "PendingforInvoiceAllocation" ||
+          selectedInvoice?.quoteStatus === "BillingPending"
+            ? "Allocate For Invoice"
+            : selectedInvoice?.srStatus === "QuotationInProgress"
+            ? "ReAllocate For Quotation"
+            : "Allocate For Quotation"}
         </h2>
 
         <button
@@ -59,7 +57,7 @@ const SideBar = ({
 
         {/* Display suggestions */}
         {suggestions.length > 0 && (
-          <div className="max-h-[100px] overflow-y-scroll mt-1 bg-white dark:bg-gray-800 rounded-md shadow-md">
+          <div className="max-h-[100px] overflow-y-scroll custom-scrollbar mt-1 bg-white dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-md">
             {suggestions.map((suggestion, index) => (
               <div
                 key={index}
@@ -82,7 +80,7 @@ const SideBar = ({
           onChange={handleRemarksChange}
           className="mt-1 p-2 w-full border border-gray-300 outline-none focus:border-gray-500 rounded-md dark:bg-gray-800 dark:text-gray-100"
           placeholder="Enter remarks here..."
-          rows="4"
+          rows="2"
         />
       </div>
 

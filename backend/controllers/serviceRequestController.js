@@ -1,12 +1,12 @@
-const express = require('express');
-const ServiceRequest = require('../models/serviceRequestSchema.js');
-const Counter = require('../models/counterModel.js');
-const AdminCreateUser = require('../models/AdminCreateUser.js');
-const QuoteModel = require('../models/quotationModel.js');
+const express = require("express");
+const ServiceRequest = require("../models/serviceRequestSchema.js");
+const Counter = require("../models/counterModel.js");
+const AdminCreateUser = require("../models/AdminCreateUser.js");
+const QuoteModel = require("../models/quotationModel.js");
 const {
   QuotationAllocationLog,
   InvoiceAllocationLog,
-} = require('../models/AllocationSchema.js');
+} = require("../models/AllocationSchema.js");
 
 const quoteCreate = async (req, res) => {
   const {
@@ -44,12 +44,12 @@ const quoteCreate = async (req, res) => {
     // Save the document to the database
     const savedQuote = await newQuote.save();
     res.status(201).json({
-      message: 'Quote created successfully',
+      message: "Quote created successfully",
       data: savedQuote,
     });
   } catch (error) {
     res.status(500).json({
-      message: 'Failed to create quote',
+      message: "Failed to create quote",
       error: error.message,
     });
   }
@@ -70,7 +70,7 @@ const createServiceRequest = async (req, res) => {
     } = req.body;
 
     // Retrieve uploaded file paths
-    const filePaths = req.files.map(file => file.filename);
+    const filePaths = req.files.map((file) => file.filename);
 
     // Check if service request already exists for the provided quotation number
     const existingSR = await ServiceRequest.findOne({ quotationNo });
@@ -83,7 +83,7 @@ const createServiceRequest = async (req, res) => {
     // Retrieve the existing quotation for the given quotation number
     const existingQuotation = await QuoteModel.findOne({ quotationNo });
     if (!existingQuotation) {
-      return res.status(404).json({ message: 'Quotation not found' });
+      return res.status(404).json({ message: "Quotation not found" });
     }
 
     // Check conditions for billing document
@@ -91,11 +91,11 @@ const createServiceRequest = async (req, res) => {
       // Generate new service request ID
       const getNextServiceRequestId = async () => {
         const counter = await Counter.findOneAndUpdate(
-          { name: 'SR' },
+          { name: "SR" },
           { $inc: { value: 1 } },
           { new: true, upsert: true }
         );
-        const paddedValue = String(counter.value).padStart(8, '0');
+        const paddedValue = String(counter.value).padStart(8, "0");
         return counter.name + paddedValue;
       };
 
@@ -103,8 +103,8 @@ const createServiceRequest = async (req, res) => {
 
       // Set service request status based on approval indicator
       const srStatus = existingQuotation.approvalInd
-        ? 'PendingforInvoiceAllocation'
-        : 'PendingForQuotationAllocation';
+        ? "PendingforInvoiceAllocation"
+        : "PendingForQuotationAllocation";
 
       // Prepare new service request data
       const serviceRequestData = {
@@ -135,10 +135,10 @@ const createServiceRequest = async (req, res) => {
         .status(400)
         .json({ message: `${quotationNo} is already billed!` });
     } else {
-      return res.status(400).json({ message: 'No matching conditions found' });
+      return res.status(400).json({ message: "No matching conditions found" });
     }
   } catch (error) {
-    console.error('Error creating service request:', error);
+    console.error("Error creating service request:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -148,7 +148,7 @@ const getServiceRequest = async (req, res) => {
 
     const serviceRequest = await ServiceRequest.findOne({
       serviceRequestId,
-    }).select('-_id -__v');
+    }).select("-_id -__v");
 
     if (!serviceRequest) {
       return res
@@ -174,7 +174,7 @@ const getServiceRequestByStatus = async (req, res) => {
 
     // Find service requests based on the filter
     const serviceRequests = await ServiceRequest.find(filter).select(
-      '-_id -__v'
+      "-_id -__v"
     );
 
     if (!serviceRequests || serviceRequests.length === 0) {
@@ -195,7 +195,7 @@ const getAllServiceRequest = async (req, res) => {
 
     // Check if there are any service requests
     if (serviceRequests.length === 0) {
-      return res.status(404).json({ message: 'No service requests found.' });
+      return res.status(404).json({ message: "No service requests found." });
     }
 
     // Send the service requests in the response
@@ -209,7 +209,7 @@ const allocateServiceRequest = async (req, res) => {
   try {
     const { name, email, serviceRequestId, action, srStatus } = req.body;
     const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
-    const user = await AdminCreateUser.findOne({ name, email, role: 'spc' });
+    const user = await AdminCreateUser.findOne({ name, email, role: "spc" });
 
     if (!user) {
       return res.status(404).json({ message: `${name} not found!` });
@@ -217,10 +217,10 @@ const allocateServiceRequest = async (req, res) => {
 
     // Ensure the quote status is eligible
     if (
-      (serviceRequest.quoteStatus == 'BillingPending' &&
-        serviceRequest.quoteStatus == 'Billed') ||
-      (serviceRequest.srStatus == 'PendingforInvoiceAllocation' &&
-        serviceRequest.srStatus == 'InvoicingInProgress')
+      (serviceRequest.quoteStatus == "BillingPending" &&
+        serviceRequest.quoteStatus == "Billed") ||
+      (serviceRequest.srStatus == "PendingforInvoiceAllocation" &&
+        serviceRequest.srStatus == "InvoicingInProgress")
     ) {
       return res.status(400).json({
         message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
@@ -230,15 +230,15 @@ const allocateServiceRequest = async (req, res) => {
     }
 
     // Update Service Request
-    if (action === 'AllocationforQuotation') {
+    if (action === "AllocationforQuotation") {
       serviceRequest.allocatedTo_name = name;
       serviceRequest.allocatedTo_email = email;
-      serviceRequest.srStatus = 'QuotationInProgress';
+      serviceRequest.srStatus = "QuotationInProgress";
       serviceRequest.allocatedAt = new Date();
-    } else if (action === 'ReallocationforQuotation') {
+    } else if (action === "ReallocationforQuotation") {
       serviceRequest.reallocatedTo_name = name;
       serviceRequest.reallocatedTo_email = email;
-      serviceRequest.srStatus = 'QuotationInProgress';
+      serviceRequest.srStatus = "QuotationInProgress";
       serviceRequest.reallocatedAt = new Date();
     }
     await serviceRequest.save();
@@ -271,8 +271,8 @@ const getServiceRequestbyEmail = async (req, res) => {
 
     const serviceRequest = await ServiceRequest.find({
       allocatedTo,
-      role: 'spc',
-    }).select('-_id -__v');
+      role: "spc",
+    }).select("-_id -__v");
 
     if (!serviceRequest) {
       return res.status(202).json({ message: `Not found!` });
@@ -290,12 +290,12 @@ const getServiceRequestbyEmail = async (req, res) => {
 const getAllName = async (req, res) => {
   try {
     // Fetching users with role 'spc' and selecting 'empName' and 'email'
-    const allempData = await AdminCreateUser.find({ role: 'spc' }).select(
-      '-_id name email'
+    const allempData = await AdminCreateUser.find({ role: "spc" }).select(
+      "-_id name email"
     );
 
     // Mapping the data to include both empName and email in the response
-    const empList = allempData.map(user => ({
+    const empList = allempData.map((user) => ({
       name: user.name,
       email: user.email,
     }));
@@ -313,8 +313,8 @@ const dummyUpdateServiceRequestStatus = async (req, res) => {
 
     const allocatedRequest = await ServiceRequest.findOne({
       serviceRequestId,
-      srStatus: 'QuotationInprogress',
-    }).select('-_id -__v');
+      srStatus: "QuotationInprogress",
+    }).select("-_id -__v");
 
     if (!allocatedRequest) {
       return res.status(202).json({ message: `Not found!` });
@@ -334,21 +334,21 @@ const dummyUpdateServiceRequestStatus = async (req, res) => {
 
     // Check and update the status if it has changed in SAP
 
-    if (allocatedRequest.quoteStatus === 'ApprovalPending') {
-      allocatedRequest.srStatus = 'Pending';
+    if (allocatedRequest.quoteStatus === "ApprovalPending") {
+      allocatedRequest.srStatus = "Pending";
       allocatedRequest.approvedAt = new Date();
       await allocatedRequest.save();
       console.log(`Approved Request: ${allocatedRequest}`);
-    } else if (allocatedRequest.quoteStatus === 'PendingRelease') {
-      allocatedRequest.srStatus = 'InProgress';
+    } else if (allocatedRequest.quoteStatus === "PendingRelease") {
+      allocatedRequest.srStatus = "InProgress";
       allocatedRequest.releasedAt = new Date();
       await allocatedRequest.save();
-    } else if (allocatedRequest.quoteStatus === 'Rejected') {
-      allocatedRequest.srStatus = 'InProgress';
+    } else if (allocatedRequest.quoteStatus === "Rejected") {
+      allocatedRequest.srStatus = "InProgress";
       allocatedRequest.rejectedAt = new Date();
       await allocatedRequest.save();
-    } else if (allocatedRequest.quoteStatus === 'Billed') {
-      allocatedRequest.srStatus = 'Closed';
+    } else if (allocatedRequest.quoteStatus === "Billed") {
+      allocatedRequest.srStatus = "Closed";
       allocatedRequest.billedAt = new Date();
       await allocatedRequest.save();
     }
@@ -364,13 +364,13 @@ const dummyUpdateServiceRequestStatus = async (req, res) => {
     );
   } catch (error) {
     res.status(500).json({ message: error.message });
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 };
 const allocateForQuotation = async (req, res, next) => {
   try {
     const { serviceRequestId, name, email, remarks, action } = req.body;
-    console.log('🚀 ~ allocateForQuotation ~ req.body:', req.body);
+    console.log("🚀 ~ allocateForQuotation ~ req.body:", req.body);
     // Find the service request
     const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
     if (!serviceRequest) {
@@ -379,7 +379,7 @@ const allocateForQuotation = async (req, res, next) => {
         .json({ message: `Service Request ${serviceRequestId} not found!` });
     }
 
-    const user = await AdminCreateUser.findOne({ name, email, role: 'spc' });
+    const user = await AdminCreateUser.findOne({ name, email, role: "spc" });
 
     if (!user) {
       return res.status(202).json({ message: `${name} not found!` });
@@ -400,10 +400,10 @@ const allocateForQuotation = async (req, res, next) => {
     // }
 
     if (
-      serviceRequest.quoteStatus == 'PendingRelease' ||
-      serviceRequest.quoteStatus == 'ApprovalPending' ||
-      (serviceRequest.srStatus == 'PendingForQuotationAllocation' &&
-        serviceRequest.srStatus == 'QuotationInProgress')
+      serviceRequest.quoteStatus == "PendingRelease" ||
+      serviceRequest.quoteStatus == "ApprovalPending" ||
+      (serviceRequest.srStatus == "PendingForQuotationAllocation" &&
+        serviceRequest.srStatus == "QuotationInProgress")
     ) {
       // return res.status(400).json({
       //   message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
@@ -412,15 +412,15 @@ const allocateForQuotation = async (req, res, next) => {
       // });
 
       // Update Service Request
-      if (action === 'AllocationforQuotation') {
+      if (action === "AllocationforQuotation") {
         serviceRequest.allocatedTo_name = name;
         serviceRequest.allocatedTo_email = email;
-        serviceRequest.srStatus = 'QuotationInProgress';
+        serviceRequest.srStatus = "QuotationInProgress";
         serviceRequest.allocatedAt = new Date();
-      } else if (action === 'ReallocationforQuotation') {
+      } else if (action === "ReallocationforQuotation") {
         serviceRequest.reallocatedTo_name = name;
         serviceRequest.reallocatedTo_email = email;
-        serviceRequest.srStatus = 'QuotationInProgress';
+        serviceRequest.srStatus = "QuotationInProgress";
         serviceRequest.reallocatedAt = new Date();
       }
       await serviceRequest.save();
@@ -445,9 +445,9 @@ const allocateForQuotation = async (req, res, next) => {
     }
 
     if (
-      serviceRequest.quoteStatus == 'BillingPending' && //serviceRequest.quoteStatus == 'Billed' ||
-      (serviceRequest.srStatus == 'PendingforInvoiceAllocation' ||
-        serviceRequest.srStatus == 'InvoicingInProgress')
+      serviceRequest.quoteStatus == "BillingPending" && //serviceRequest.quoteStatus == 'Billed' ||
+      (serviceRequest.srStatus == "PendingforInvoiceAllocation" ||
+        serviceRequest.srStatus == "InvoicingInProgress")
     ) {
       // return res.status(400).json({
       //   message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
@@ -456,15 +456,15 @@ const allocateForQuotation = async (req, res, next) => {
       // });
 
       // Update Service Request
-      if (action === 'AllocationforInvoice') {
+      if (action === "AllocationforInvoice") {
         serviceRequest.allocatedTo_name = name;
         serviceRequest.allocatedTo_email = email;
-        serviceRequest.srStatus = 'InvoicingInProgress';
+        serviceRequest.srStatus = "InvoicingInProgress";
         serviceRequest.allocatedAt = new Date();
-      } else if (action === 'ReallocationforInvoice') {
+      } else if (action === "ReallocationforInvoice") {
         serviceRequest.reallocatedTo_name = name;
         serviceRequest.reallocatedTo_email = email;
-        serviceRequest.srStatus = 'InvoicingInProgress';
+        serviceRequest.srStatus = "InvoicingInProgress";
         serviceRequest.reallocatedAt = new Date();
       }
       await serviceRequest.save();
@@ -491,7 +491,7 @@ const allocateForQuotation = async (req, res, next) => {
 };
 const getQuotationAllocationLogs = async (req, res, next) => {
   try {
-    const logs = await QuotationAllocationLog.find({ type: 'Quotation' }).sort({
+    const logs = await QuotationAllocationLog.find({ type: "Quotation" }).sort({
       createdAt: -1,
     });
     res.status(200).json({ logs });
@@ -587,7 +587,7 @@ const getQuotationAllocationLogs = async (req, res, next) => {
 // };
 const getInvoiceAllocationLogs = async (req, res, next) => {
   try {
-    const logs = await InvoiceAllocationLog.find({ type: 'Invoice' }).sort({
+    const logs = await InvoiceAllocationLog.find({ type: "Invoice" }).sort({
       createdAt: -1,
     });
     res.status(200).json({ logs });
@@ -599,7 +599,7 @@ const updateServiceRequestStatus = async (req, res) => {
   try {
     // Fetch all service requests with status 'Allocated'
     const allocatedRequests = await ServiceRequest.find({
-      srStatus: 'Allocated',
+      srStatus: "Allocated",
     });
 
     for (const request of allocatedRequests) {
@@ -620,42 +620,42 @@ const updateServiceRequestStatus = async (req, res) => {
       // Check and update the status if it has changed in SAP
 
       if (
-        allocatedRequest.quoteStatus === 'PendingRelease' &&
-        request.quoteStatus === 'PendingRelease'
+        allocatedRequest.quoteStatus === "PendingRelease" &&
+        request.quoteStatus === "PendingRelease"
       ) {
-        request.srStatus = 'PendingforReallocation';
+        request.srStatus = "PendingforReallocation";
         request.approvedAt = new Date();
       } else if (
-        allocatedRequest.quoteStatus === 'ApprovalPending' &&
-        request.quoteStatus === 'ApprovalPending'
+        allocatedRequest.quoteStatus === "ApprovalPending" &&
+        request.quoteStatus === "ApprovalPending"
       ) {
-        request.srStatus = 'InProgress';
+        request.srStatus = "InProgress";
         request.releasedAt = new Date();
       } else if (
-        allocatedRequest.quoteStatus === 'Rejected' &&
-        request.quoteStatus === 'Rejected'
+        allocatedRequest.quoteStatus === "Rejected" &&
+        request.quoteStatus === "Rejected"
       ) {
-        request.srStatus = 'ReallocatedforInvoice';
+        request.srStatus = "ReallocatedforInvoice";
         request.rejectedAt = new Date();
       } else if (
-        allocatedRequest.quoteStatus === 'Billed' &&
-        request.quoteStatus === 'Billed'
+        allocatedRequest.quoteStatus === "Billed" &&
+        request.quoteStatus === "Billed"
       ) {
-        request.srStatus = 'Closed';
+        request.srStatus = "Closed";
         request.billedAt = new Date();
       }
 
       // Save only if the status was updated
-      if (request.isModified('srStatus')) {
+      if (request.isModified("srStatus")) {
         await request.save();
         console.log(
           `${request.serviceRequestId} updated to status ${allocatedRequest}.`
         );
       }
     }
-    console.log('Daily SAP status update completed successfully.');
+    console.log("Daily SAP status update completed successfully.");
   } catch (error) {
-    console.error('Error updating service request statuses:', error);
+    console.error("Error updating service request statuses:", error);
   }
 };
 

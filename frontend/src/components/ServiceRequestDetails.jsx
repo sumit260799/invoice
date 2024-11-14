@@ -1,18 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { get, post } from '../services/ApiEndpoint';
-import { toast } from 'react-hot-toast';
-import { useSelector } from 'react-redux';
-import { FaEdit } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { get, post } from "../services/ApiEndpoint";
+import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
+import { FaEdit } from "react-icons/fa";
+import { MdOutlineClose } from "react-icons/md";
 
 const ServiceRequestDetails = ({ selectedInvoice }) => {
   const invoice = selectedInvoice;
+  console.log("🚀 ------------------------------------------🚀");
+  console.log("🚀  ServiceRequestDetails  invoice", invoice);
+  console.log("🚀 ------------------------------------------🚀");
+
   const { serviceRequestId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [name, setName] = useState(''); // Change email to name
+  const [name, setName] = useState(""); // Change email to name
   const handleEditClick = () => {
     setIsEditing(true);
   };
@@ -25,18 +30,18 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
 
   const handleSubmit = async () => {
     if (!name) {
-      toast.error('Please enter a name.');
+      toast.error("Please enter a name.");
       return;
     }
 
-    const selectedUser = emailList.find(item => item.name === name);
+    const selectedUser = emailList.find((item) => item.name === name);
     if (!selectedUser) {
-      toast.error('Selected name is not valid.');
+      toast.error("Selected name is not valid.");
       return;
     }
 
     try {
-      const response = await post('/api/user/allocate', {
+      const response = await post("/api/user/allocate", {
         serviceRequestId,
         email: selectedUser.email,
         name: selectedUser.name,
@@ -45,12 +50,12 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
 
       if (response.status === 200) {
         toast.success(response?.data?.message);
-        setName('');
+        setName("");
       } else if (response.status === 202) {
         toast.error(response?.data?.message);
-        setName('');
+        setName("");
       } else {
-        toast.error('Failed to assign email.');
+        toast.error("Failed to assign email.");
       }
     } catch (error) {
       toast.error(`Error assigning email: ${error.message}`);
@@ -132,7 +137,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                 {!isEditing ? (
                   <>
                     <span>{invoice.srStatus}</span>
-                    {invoice.srStatus !== 'Closed' && (
+                    {invoice.srStatus !== "Closed" && (
                       <FaEdit
                         className="text-gray-500 dark:hover:text-gray-300 hover:text-gray-800 cursor-pointer"
                         onClick={handleEditClick}
@@ -144,7 +149,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                     <select
                       className="p-1 outline-none border-none rounded dark:bg-gray-700 dark:text-gray-300"
                       value={selectedStatus}
-                      onChange={e => setSelectedStatus(e.target.value)}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                       <option value="OnHold">OnHold</option>
                       <option value="Rejected">Rejected</option>
@@ -155,6 +160,9 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                     >
                       Submit
                     </button>
+                    <button onClick={() => setIsEditing(false)}>
+                      <MdOutlineClose className="text-xl font-semibold" />
+                    </button>
                   </>
                 )}
               </div>
@@ -163,60 +171,20 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
             {/* Allocated To and Allocated At */}
             <div className="p-2 ">
               <span className="underline font-semibold text-gray-700 dark:text-gray-300">
-                Allocated To
+                Allocation For Quotation
               </span>
               <p className="text-gray-600 dark:text-gray-400">
                 {invoice.allocatedTo_name} / {invoice.allocatedTo_email}
-              </p>
-
-              <span className="underline font-semibold text-gray-700 dark:text-gray-300 mt-2 block">
-                Allocated At
-              </span>
-              <p className="text-gray-600 dark:text-gray-400">
-                {invoice.allocatedAt
-                  ? new Date(invoice.allocatedAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                    })
-                  : 'N/A'}
               </p>
             </div>
 
             {/* Allocated To For Invoice and Approved At */}
             <div className="p-2 ">
               <span className="underline font-semibold text-gray-700 dark:text-gray-300">
-                Allocated To For Invoice
+                Allocation For Invoice
               </span>
               <p className="text-gray-600 dark:text-gray-400">
                 {invoice.reallocatedTo_name} / {invoice.reallocatedTo_email}
-              </p>
-
-              <span className="underline font-semibold text-gray-700 dark:text-gray-300 mt-2 block">
-                Approved At
-              </span>
-              <p className="text-gray-600 dark:text-gray-400">
-                {invoice.approved || 'N/A'}
-              </p>
-            </div>
-
-            {/* Released At and Rejected At */}
-            <div className="p-2 ">
-              <span className="underline font-semibold text-gray-700 dark:text-gray-300">
-                Released At
-              </span>
-              <p className="text-gray-600 dark:text-gray-400">
-                {invoice.releasedAt || 'N/A'}
-              </p>
-
-              <span className="underline font-semibold text-gray-700 dark:text-gray-300 mt-2 block">
-                Rejected At
-              </span>
-              <p className="text-gray-600 dark:text-gray-400">
-                {invoice.rejectedAt || 'N/A'}
               </p>
             </div>
           </div>
