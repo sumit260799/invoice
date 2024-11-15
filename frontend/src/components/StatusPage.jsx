@@ -1,170 +1,143 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
-import { get } from "../services/ApiEndpoint";
-import BarChart from "./BarChart";
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchInvoices } from '../features/serviceRequestSlice';
 
 const StatusPage = () => {
+  const dispatch = useDispatch();
+  const { statusCounts } = useSelector(state => state.serviceRequest);
   const navigate = useNavigate();
-  const [invoices, setInvoices] = useState([]);
-  const [statusCounts, setStatusCounts] = useState({
-    srStatusCounts: {},
-    quoteStatusCounts: {},
-  });
-  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchInvoices());
+  }, [dispatch]);
 
   const handleCardClick = (status, type) => {
     navigate(`/status/${status}`);
   };
+
   const handleQuoteClick = (status, type) => {
     navigate(`/quoteStatus/${status}`);
   };
 
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      setLoading(true);
-      try {
-        const response = await get("/api/user/get-service-request");
-        if (response.status === 200) {
-          const fetchedInvoices = response.data?.serviceRequests || [];
-          setInvoices(fetchedInvoices);
-
-          const srCounts = {};
-          const quoteCounts = {};
-
-          fetchedInvoices.forEach((invoice) => {
-            const srStatus = invoice.srStatus;
-            srCounts[srStatus] = (srCounts[srStatus] || 0) + 1;
-
-            const quoteStatus = invoice.quoteStatus;
-            quoteCounts[quoteStatus] = (quoteCounts[quoteStatus] || 0) + 1;
-          });
-
-          setStatusCounts({
-            srStatusCounts: srCounts,
-            quoteStatusCounts: quoteCounts,
-          });
-        } else {
-          toast.error("Failed to fetch invoices.");
-        }
-      } catch (error) {
-        toast.error(`Error fetching invoices: ${error.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInvoices();
-  }, []);
-
   const srStatusColors = {
     PendingForQuotationAllocation: {
-      bg: "bg-blue-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-yellow-400',
+      border: 'border-yellow-500',
+      shadow: 'shadow-yellow-300 dark:shadow-[rgba(250,200,50,0.2)]',
+      text: 'text-white',
     },
     QuotationInProgress: {
-      bg: "bg-green-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-green-500',
+      border: 'border-green-600',
+      shadow: 'shadow-green-300 dark:shadow-[rgba(100,255,150,0.2)]',
+      text: 'text-white',
     },
     PendingforInvoiceAllocation: {
-      bg: "bg-indigo-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-blue-500',
+      border: 'border-blue-600',
+      shadow: 'shadow-blue-300 dark:shadow-[rgba(80,170,250,0.2)]',
+      text: 'text-white',
     },
     InvoicingInProgress: {
-      bg: "bg-yellow-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-indigo-500',
+      border: 'border-indigo-600',
+      shadow: 'shadow-indigo-300 dark:shadow-[rgba(120,100,255,0.2)]',
+      text: 'text-white',
     },
     OnHold: {
-      bg: "bg-purple-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-purple-500',
+      border: 'border-purple-600',
+      shadow: 'shadow-purple-300 dark:shadow-[rgba(200,100,250,0.2)]',
+      text: 'text-white',
     },
     Rejected: {
-      bg: "bg-red-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-red-500',
+      border: 'border-red-600',
+      shadow: 'shadow-red-300 dark:shadow-[rgba(250,100,100,0.2)]',
+      text: 'text-white',
     },
   };
 
   const quoteStatusColors = {
     PendingRelease: {
-      bg: "bg-blue-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-yellow-400',
+      border: 'border-yellow-500',
+      shadow: 'shadow-yellow-300 dark:shadow-[rgba(250,200,50,0.2)]',
+      text: 'text-white',
     },
     ApprovalPending: {
-      bg: "bg-green-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-green-500',
+      border: 'border-green-600',
+      shadow: 'shadow-green-300 dark:shadow-[rgba(100,255,150,0.2)]',
+      text: 'text-white',
     },
     BillingPending: {
-      bg: "bg-yellow-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-blue-500',
+      border: 'border-blue-600',
+      shadow: 'shadow-blue-300 dark:shadow-[rgba(80,170,250,0.2)]',
+      text: 'text-white',
     },
     Rejected: {
-      bg: "bg-red-700",
-      text: "text-white",
-      boldText: "text-white",
+      bg: 'bg-red-500',
+      border: 'border-red-600',
+      shadow: 'shadow-red-300 dark:shadow-[rgba(250,100,100,0.2)]',
+      text: 'text-white',
     },
   };
 
-  // Mapping database status keys to display names
   const statusLabels = {
-    PendingForQuotationAllocation: "Pending for Quotation Allocation",
-    QuotationInProgress: "Quotation In Progress",
-    PendingforInvoiceAllocation: "Pending for Invoice Allocation",
-    InvoicingInProgress: "Invoicing In Progress",
-    OnHold: "On Hold",
-    PendingRelease: "Pending Release",
-    ApprovalPending: "Approval Pending",
-    BillingPending: "Billing Pending",
-    Rejected: "Rejected",
+    PendingForQuotationAllocation: 'Pending for Quotation Allocation',
+    QuotationInProgress: 'Quotation In Progress',
+    PendingforInvoiceAllocation: 'Pending for Invoice Allocation',
+    InvoicingInProgress: 'Invoicing In Progress',
+    OnHold: 'On Hold',
+    PendingRelease: 'Pending Release',
+    ApprovalPending: 'Approval Pending',
+    BillingPending: 'Billing Pending',
+    Rejected: 'Rejected',
   };
 
   return (
-    <div className="min-h-screen p-2 sm:p-4 md:p-8 flex flex-col items-center border-none outline-none rounded-md bg-gray-100 dark:bg-gray-800">
-      <div className="w-full p-2 mb-6">
-        <h2 className="text-start text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6 text-gray-800 dark:text-gray-100">
+    <div className="min-h-screen p-4 sm:p-8 flex flex-col items-center bg-gradient-to-tl from-gray-200 to-gray-100 dark:bg-gradient-to-tr dark:from-gray-700 dark:to-gray-800 rounded-lg">
+      <div className="w-full p-4 mb-6">
+        <h2 className="text-start text-3xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
           SR Status
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {Object.keys(srStatusColors).map((status) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.keys(srStatusColors).map(status => (
             <div
               key={status}
-              onClick={() => handleCardClick(status, "srStatus")}
-              className={`px-3 py-4 ${srStatusColors[status].bg} backdrop-blur-md bg-opacity-70 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex flex-col items-center cursor-pointer break-words overflow-hidden`}
+              onClick={() => handleCardClick(status, 'srStatus')}
+              className={`px-4 py-6 ${srStatusColors[status].bg} ${srStatusColors[status].border} ${srStatusColors[status].shadow} border rounded-lg shadow-lg backdrop-blur-md transition-transform transform hover:translate-y-[-4px] hover:shadow-2xl flex flex-col items-center cursor-pointer`}
             >
               <p
-                className={`text-md font-semibold ${srStatusColors[status].text} whitespace-normal break-words text-center`}
+                className={`text-md font-semibold ${srStatusColors[status].text} text-center`}
               >
                 {statusLabels[status]}
               </p>
-              <p className={`text-3xl ${srStatusColors[status].boldText}`}>
+              <p
+                className={`text-3xl font-bold ${srStatusColors[status].text} text-center`}
+              >
                 {statusCounts.srStatusCounts[status] || 0}
               </p>
             </div>
           ))}
         </div>
-        {/* <BarChart /> */}
       </div>
 
-      <div className="w-full p-2 mb-6">
-        <h2 className="text-start text-2xl sm:text-3xl font-semibold mb-4 sm:mb-8 text-gray-800 dark:text-gray-100">
+      <div className="w-full p-4 mb-6">
+        <h2 className="text-start text-3xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
           Quotation Status
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.keys(quoteStatusColors).map((status) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.keys(quoteStatusColors).map(status => (
             <div
               key={status}
-              onClick={() => handleQuoteClick(status, "quoteStatus")}
-              className={`px-3 py-4 ${quoteStatusColors[status].bg} bg-opacity-70 rounded-lg shadow-lg backdrop-blur-md transition-transform transform hover:scale-105 flex flex-col items-center cursor-pointer overflow-hidden`}
+              onClick={() => handleQuoteClick(status, 'quoteStatus')}
+              className={`px-4 py-6 ${quoteStatusColors[status].bg} ${quoteStatusColors[status].border} ${quoteStatusColors[status].shadow} border rounded-lg shadow-lg backdrop-blur-md transition-transform transform hover:translate-y-[-4px] hover:shadow-2xl flex flex-col items-center cursor-pointer`}
             >
               <p
                 className={`text-md font-semibold ${quoteStatusColors[status].text} text-center`}
@@ -172,7 +145,7 @@ const StatusPage = () => {
                 {statusLabels[status]}
               </p>
               <p
-                className={`text-3xl ${quoteStatusColors[status].boldText} text-center`}
+                className={`text-3xl font-bold ${quoteStatusColors[status].text} text-center`}
               >
                 {statusCounts.quoteStatusCounts[status] || 0}
               </p>

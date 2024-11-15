@@ -1,67 +1,44 @@
-import React, { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
-import { get, post } from "../services/ApiEndpoint";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { FaFilePdf, FaTimes } from "react-icons/fa";
-import { MdFolderZip, MdPreview, MdAssignmentAdd } from "react-icons/md";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
-import ServiceRequestDetails from "./ServiceRequestDetails";
-import SideBar from "./SideBar";
+import React, { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { get, post } from '../services/ApiEndpoint';
+import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { FaFilePdf, FaTimes } from 'react-icons/fa';
+import { MdFolderZip, MdPreview, MdAssignmentAdd } from 'react-icons/md';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import ServiceRequestDetails from './ServiceRequestDetails';
+import SideBar from './SideBar';
+import { fetchInvoices, fetchAllEmails } from '../features/serviceRequestSlice';
 
 const AllRequests = () => {
-  const { user } = useSelector((state) => state.auth);
-  const [invoices, setInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const { emailList, invoices, loading } = useSelector(
+    state => state.serviceRequest
+  );
+  const dispatch = useDispatch();
+  const { user } = useSelector(state => state.auth);
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [showSidebar, setShowSidebar] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  console.log("🚀 ~ AllRequests ~ selectedInvoice:", selectedInvoice);
-  const [emailList, setEmailList] = useState([]);
+
   const [inputValue, setInputValue] = useState([
-    { name: "", email: "", remarks: "" },
+    { name: '', email: '', remarks: '' },
   ]);
   const [suggestions, setSuggestions] = useState([]);
   const itemsPerPage = 12;
-  const url = "http://localhost:5000";
-
-  const fetchInvoices = async () => {
-    try {
-      const response = await get("/api/user/get-service-request");
-      if (response.status === 200) {
-        setInvoices(response.data.serviceRequests); // Updated to match your data structure
-      } else {
-        toast.error("Failed to fetch invoices.");
-      }
-    } catch (error) {
-      toast.error(`Error fetching invoices: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchInvoices();
-  }, []);
-  const fetchAllEmail = async () => {
-    try {
-      const response = await get("/api/user/v1/names");
-      console.log("response", response.data);
-      setEmailList(response.data?.empList);
-    } catch (error) {}
-  };
 
   useEffect(() => {
-    fetchAllEmail();
+    dispatch(fetchInvoices());
+    dispatch(fetchAllEmails());
   }, []);
 
-  const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
+  const handleSort = key => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
     }
     setSortConfig({ key, direction });
   };
@@ -71,17 +48,17 @@ const AllRequests = () => {
     if (sortConfig.key) {
       sortableInvoices.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key])
-          return sortConfig.direction === "asc" ? -1 : 1;
+          return sortConfig.direction === 'asc' ? -1 : 1;
         if (a[sortConfig.key] > b[sortConfig.key])
-          return sortConfig.direction === "asc" ? 1 : -1;
+          return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
     return sortableInvoices;
   }, [invoices, sortConfig]);
 
-  const filteredInvoices = sortedInvoices.filter((invoice) =>
-    Object.values(invoice).some((val) =>
+  const filteredInvoices = sortedInvoices.filter(invoice =>
+    Object.values(invoice).some(val =>
       val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
@@ -93,21 +70,22 @@ const AllRequests = () => {
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
   const tableHeaders = [
-    { label: "SrID", key: "serviceRequestId" },
-    { label: "QuoteNo", key: "quotationNo" },
-    { label: "QuoteStatus", key: "quoteStatus" },
-    { label: "SrStatus", key: "srStatus" },
-    { label: "Zone", key: "zone" },
-    { label: "EquipSlNo", key: "equipmentSerialNo" },
-    { label: "ModelNo", key: "modelNo" },
-    { label: "IndustryDiv", key: "industryDiv" },
-    { label: "BillingPlant", key: "billingPlant" },
-    { label: "CustomerName", key: "customerName" },
-    { label: "Files", key: "attachments" },
-    { label: "Actions", key: "actions" },
+    { label: 'SrID', key: 'serviceRequestId' },
+    { label: 'QuoteNo', key: 'quotationNo' },
+    { label: 'QuoteStatus', key: 'quoteStatus' },
+    { label: 'SrStatus', key: 'srStatus' },
+    { label: 'remarks', key: 'remarks' },
+    { label: 'Zone', key: 'zone' },
+    { label: 'EquipSlNo', key: 'equipmentSerialNo' },
+    { label: 'ModelNo', key: 'modelNo' },
+    { label: 'IndustryDiv', key: 'industryDiv' },
+    { label: 'BillingPlant', key: 'billingPlant' },
+    { label: 'Cus.Name', key: 'customerName' },
+    { label: 'Files', key: 'attachments' },
+    { label: 'Actions', key: 'actions' },
   ];
 
-  const openRightSidebar = (invoice) => {
+  const openRightSidebar = invoice => {
     setSelectedInvoice(invoice);
     setShowSidebar(true);
   };
@@ -115,9 +93,9 @@ const AllRequests = () => {
     setShowSidebar(false);
   };
 
-  const openModal = (invoice) => {
+  const openModal = invoice => {
     setSelectedInvoice(invoice);
-    console.log("hiiiii");
+    console.log('hiiiii');
     setShowModal(true);
   };
 
@@ -125,11 +103,10 @@ const AllRequests = () => {
     setShowModal(false);
   };
   // Handle input change for name or email search
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { value } = e.target;
-
     // Update the name field in inputValue
-    setInputValue((prevInput) => ({
+    setInputValue(prevInput => ({
       ...prevInput,
       name: value, // Update `name` with the search value
     }));
@@ -137,7 +114,7 @@ const AllRequests = () => {
     // Filter suggestions based on name or email
     setSuggestions(
       emailList.filter(
-        (data) =>
+        data =>
           data.name.toLowerCase().includes(value.toLowerCase()) ||
           data.email.toLowerCase().includes(value.toLowerCase())
       )
@@ -145,7 +122,7 @@ const AllRequests = () => {
   };
 
   // Handle suggestion click
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = suggestion => {
     setInputValue({
       name: suggestion.name,
       email: suggestion.email,
@@ -155,9 +132,9 @@ const AllRequests = () => {
   };
 
   // Handle remarks change
-  const handleRemarksChange = (e) => {
+  const handleRemarksChange = e => {
     const { value } = e.target;
-    setInputValue((prevInput) => ({
+    setInputValue(prevInput => ({
       ...prevInput,
       remarks: value,
     }));
@@ -165,33 +142,37 @@ const AllRequests = () => {
 
   // Clear input
   const clearInput = () => {
-    setInputValue({ name: "", email: "", remarks: "" });
+    setInputValue({ name: '', email: '', remarks: '' });
     setSuggestions([]);
   };
 
   // Handle form submit
   const handleSubmit = async () => {
     if (!inputValue.name) {
-      toast.error("Please enter a name.");
+      toast.error('Please enter a name.');
       return;
     }
 
-    const selectedUser = emailList.find(
-      (item) => item.name === inputValue.name
-    );
+    const selectedUser = emailList.find(item => item.name === inputValue.name);
     if (!selectedUser) {
-      toast.error("Selected name is not valid.");
+      toast.error('Selected name is not valid.');
       return;
     }
 
     // Set the action based on `srStatus`
     const action =
-      selectedInvoice?.srStatus === "PendingForQuotationAllocation"
-        ? "AllocationforQuotation"
-        : "ReallocationforQuotation";
+      selectedInvoice?.quoteStatus === 'BillingPending' &&
+      (selectedInvoice?.srStatus === 'PendingforInvoiceAllocation' ||
+        selectedInvoice?.srStatus === 'InvoicingInProgress')
+        ? 'AllocationforInvoice'
+        : selectedInvoice?.srStatus === 'PendingForQuotationAllocation'
+        ? 'AllocationforQuotation'
+        : selectedInvoice?.srStatus === 'QuotationInProgress'
+        ? 'ReallocationforQuotation'
+        : 'ReallocationforInvoice';
 
     try {
-      const response = await post("/api/user/v1/allocate", {
+      const response = await post('/api/user/v1/allocate', {
         serviceRequestId: selectedInvoice?.serviceRequestId,
         email: inputValue.email,
         name: inputValue.name,
@@ -202,25 +183,25 @@ const AllRequests = () => {
       if (response.status === 200) {
         toast.success(response?.data?.message);
         fetchInvoices();
-        setInputValue({ name: "", email: "", remarks: "" });
+        setInputValue({ name: '', email: '', remarks: '' });
         closeSidebar();
       } else {
-        toast.error("Failed to assign email.");
+        toast.error('Failed to assign email.');
       }
     } catch (error) {
-      console.log("🚀 ~ handleSubmit ~ error:", error);
+      console.log('🚀 ~ handleSubmit ~ error:', error);
       toast.error(`Error assigning email: ${error.message}`);
     }
   };
 
-  const handleDownloadZip = async (fileNames) => {
+  const handleDownloadZip = async (fileNames, srID) => {
     const zip = new JSZip();
-    const baseUrl = "http://localhost:5000/uploads/";
+    const baseUrl = 'http://localhost:5000/uploads/';
 
     // Fetch each file and add it to the zip
-    const fetchFilePromises = fileNames.map(async (fileName) => {
+    const fetchFilePromises = fileNames.map(async fileName => {
       const fileUrl = `${baseUrl}${fileName}`;
-      console.log("Fetching file:", fileUrl);
+      console.log('Fetching file:', fileUrl);
 
       try {
         const response = await fetch(fileUrl);
@@ -233,13 +214,12 @@ const AllRequests = () => {
         console.error(`Error fetching file ${fileName}:`, error);
       }
     });
-
     // Wait for all files to be fetched and added to the zip
     await Promise.all(fetchFilePromises);
-
-    // Generate the zip and prompt the user to download it
-    zip.generateAsync({ type: "blob" }).then((content) => {
-      saveAs(content, "files.zip");
+    zip.generateAsync({ type: 'blob' }).then(content => {
+      const fileName = `${srID}.zip`; // Fallback to 'default.zip' if no ID
+      saveAs(content, fileName);
+      console.log('🚀 ~ zip.generateAsync ~ fileName:', fileName);
     });
   };
 
@@ -251,7 +231,7 @@ const AllRequests = () => {
           placeholder="Search..."
           className="w-[50%] border bg-gray-50 dark:bg-gray-800 dark:text-brandYellow text-gray-900 border-gray-300 p-2 rounded-lg focus:outline-none focus:border-brandYellow"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
         />
       </div>
       <div className=" w-[100%] overflow-x-scroll custom-scrollbar">
@@ -269,10 +249,10 @@ const AllRequests = () => {
                   >
                     {label}
                     {sortConfig.key === key
-                      ? sortConfig.direction === "asc"
-                        ? " ▲"
-                        : " ▼"
-                      : ""}
+                      ? sortConfig.direction === 'asc'
+                        ? ' ▲'
+                        : ' ▼'
+                      : ''}
                   </th>
                 ))}
               </tr>
@@ -291,32 +271,61 @@ const AllRequests = () => {
                       {invoice.serviceRequestId}
                     </td>
                     <td className="p-2">{invoice.quotationNo}</td>
-                    <td className="p-2">{invoice.quoteStatus}</td>
-                    <td className="p-2">{invoice.srStatus}</td>
+                    <td className="p-2">
+                      {invoice.quoteStatus?.substring(0, 10)}..
+                    </td>
+                    <td className="p-2">
+                      {invoice.srStatus?.substring(0, 10)}..
+                    </td>
+                    <td className="p-2">
+                      {invoice.remarks?.substring(0, 8)}..
+                    </td>
                     <td className="p-2">{invoice.zone}</td>
                     <td className="p-2">{invoice.equipmentSerialNo}</td>
                     <td className="p-2">{invoice.modelNo}</td>
                     <td className="p-2">{invoice.industryDiv}</td>
                     <td className="p-2">{invoice.billingPlant}</td>
                     <td className="p-2">{invoice.customerName}</td>
-                    <td className="p-2">
-                      <button onClick={() => handleDownloadZip(invoice.files)}>
-                        <MdFolderZip className="text-xl" />
-                      </button>{" "}
+                    <td className="p-2 relative">
+                      <button
+                        onClick={() =>
+                          handleDownloadZip(
+                            invoice.files,
+                            invoice.serviceRequestId
+                          )
+                        }
+                        className="relative group"
+                      >
+                        <MdFolderZip className="text-xl cursor-pointer" />
+                        <span className="absolute left-1/2 transform -translate-x-1/2 -translate-y-11 w-max px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                          Attachments
+                        </span>
+                      </button>
                     </td>
+
                     <td className="p-2">
                       <button>
                         <span className="flex gap-2">
-                          <MdPreview
-                            onClick={() => openRightSidebar(invoice)}
-                            className="text-xl"
-                          />
-                          <MdAssignmentAdd
-                            onClick={() => openModal(invoice)}
-                            className="text-xl"
-                          />
+                          <span className="relative group">
+                            <MdPreview
+                              onClick={() => openModal(invoice)}
+                              className="text-xl cursor-pointer"
+                            />
+                            <span className="absolute z-50  left-1/2 transform -translate-x-1/2 -translate-y-11 w-max px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                              View Details
+                            </span>
+                          </span>
+                          <span className="relative group">
+                            <MdAssignmentAdd
+                              onClick={() => openRightSidebar(invoice)}
+                              className="text-xl cursor-pointer"
+                            />
+                            <span className="absolute  z-50 left-1/2 transform -translate-x-1/2 -translate-y-11 w-max px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                              Allocate
+                            </span>
+                          </span>
                         </span>
-                      </button>{" "}
+                      </button>
                     </td>
                   </tr>
                 );
@@ -327,7 +336,7 @@ const AllRequests = () => {
       </div>
       <div className="flex justify-between items-center mt-4">
         <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
           className="px-4 py-2 bg-brandYellow text-white rounded-lg disabled:opacity-50"
         >
@@ -337,9 +346,7 @@ const AllRequests = () => {
           Page {currentPage} of {totalPages}
         </p>
         <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
           className="px-4 py-2 bg-brandYellow text-white rounded-lg disabled:opacity-50"
         >

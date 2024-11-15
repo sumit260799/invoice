@@ -1,68 +1,59 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { get, post } from "../services/ApiEndpoint";
-import { toast } from "react-hot-toast";
-import { useSelector } from "react-redux";
-import { FaEdit } from "react-icons/fa";
-import { MdOutlineClose } from "react-icons/md";
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { get, post } from '../services/ApiEndpoint';
+import { toast } from 'react-hot-toast';
+import { useDispatch, useSelector } from 'react-redux';
+import { FaEdit } from 'react-icons/fa';
+import { MdOutlineClose } from 'react-icons/md';
+import axios from 'axios';
+import {
+  fetchInvoices,
+  fetchServiceRequest,
+  updateServiceRequestStatus,
+} from '../features/serviceRequestSlice';
 
 const ServiceRequestDetails = ({ selectedInvoice }) => {
-  const invoice = selectedInvoice;
-  console.log("🚀 ------------------------------------------🚀");
-  console.log("🚀  ServiceRequestDetails  invoice", invoice);
-  console.log("🚀 ------------------------------------------🚀");
+  const dispatch = useDispatch();
+  const {
+    details: invoice,
+    loading,
+    error,
+  } = useSelector(state => state.serviceRequest);
+  console.log('🚀 ~ ServiceRequestDetails ~ invoice:', invoice);
 
-  const { serviceRequestId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState('OnHold');
+  console.log('🚀 ~ ServiceRequestDetails ~ selectedStatus:', selectedStatus);
+  const [remarks, setRemarks] = useState('');
 
-  const [loading, setLoading] = useState(true);
-  const [name, setName] = useState(""); // Change email to name
+  const [name, setName] = useState(''); // Change email to name
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
   useEffect(() => {
-    if (invoice) {
-      setLoading(false); // Set loading to false when invoice data is available
+    if (selectedInvoice?.serviceRequestId) {
+      dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
     }
-  }, [invoice]);
+  }, [dispatch, selectedInvoice]);
 
-  const handleSubmit = async () => {
-    if (!name) {
-      toast.error("Please enter a name.");
+  const handleStatusSubmit = async () => {
+    if (!selectedStatus || !remarks.trim()) {
+      alert('Both status and remarks are required.');
       return;
     }
-
-    const selectedUser = emailList.find((item) => item.name === name);
-    if (!selectedUser) {
-      toast.error("Selected name is not valid.");
-      return;
-    }
-
-    try {
-      const response = await post("/api/user/allocate", {
-        serviceRequestId,
-        email: selectedUser.email,
-        name: selectedUser.name,
-        ...invoice,
-      });
-
-      if (response.status === 200) {
-        toast.success(response?.data?.message);
-        setName("");
-      } else if (response.status === 202) {
-        toast.error(response?.data?.message);
-        setName("");
-      } else {
-        toast.error("Failed to assign email.");
-      }
-    } catch (error) {
-      toast.error(`Error assigning email: ${error.message}`);
-    }
+    const payload = {
+      serviceRequestId: invoice.serviceRequestId,
+      srStatus: selectedStatus,
+      remarks,
+    };
+    await dispatch(updateServiceRequestStatus(payload)).then(() =>
+      setIsEditing(false)
+    );
+    await dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
+    await dispatch(fetchInvoices());
   };
-  const handleStatusSubmit = () => {};
-  const handleReallocateSubmit = async () => {};
+
   return (
     <div className="flex flex-col items-center  rounded-lg min-h-screen">
       <div className="w-full  p-6">
@@ -87,23 +78,6 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
               </p>
             </div>
 
-            {/* Quote Status and Billing Plant */}
-            <div className="p-2 ">
-              <span className="underline font-semibold text-gray-700 dark:text-gray-300">
-                Quote Status
-              </span>
-              <p className="text-gray-600 dark:text-gray-400">
-                {invoice.quoteStatus}
-              </p>
-
-              <span className="underline font-semibold text-gray-700 dark:text-gray-300 mt-2 block">
-                Billing Plant
-              </span>
-              <p className="text-gray-600 dark:text-gray-400">
-                {invoice.billingPlant}
-              </p>
-            </div>
-
             {/* Customer Name and Equipment Serial No */}
             <div className="p-2 ">
               <span className="underline font-semibold text-gray-700 dark:text-gray-300">
@@ -120,16 +94,14 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                 {invoice.equipmentSerialNo}
               </p>
             </div>
-
-            {/* Model No and SrStatus with Editable Option */}
+            {/* Quote Status and Billing Plant */}
             <div className="p-2 ">
               <span className="underline font-semibold text-gray-700 dark:text-gray-300">
-                Model No
+                Quote Status
               </span>
               <p className="text-gray-600 dark:text-gray-400">
-                {invoice.modelNo}
+                {invoice.quoteStatus}
               </p>
-
               <span className="underline font-semibold text-gray-700 dark:text-gray-300 mt-2 block">
                 SrStatus
               </span>
@@ -137,7 +109,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                 {!isEditing ? (
                   <>
                     <span>{invoice.srStatus}</span>
-                    {invoice.srStatus !== "Closed" && (
+                    {invoice.srStatus !== 'Closed' && (
                       <FaEdit
                         className="text-gray-500 dark:hover:text-gray-300 hover:text-gray-800 cursor-pointer"
                         onClick={handleEditClick}
@@ -146,26 +118,57 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                   </>
                 ) : (
                   <>
-                    <select
-                      className="p-1 outline-none border-none rounded dark:bg-gray-700 dark:text-gray-300"
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                    >
-                      <option value="OnHold">OnHold</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                    <button
-                      className="px-2 py-1 bg-brandYellow text-white rounded hover:scale-105"
-                      onClick={handleSubmit}
-                    >
-                      Submit
-                    </button>
-                    <button onClick={() => setIsEditing(false)}>
-                      <MdOutlineClose className="text-xl font-semibold" />
-                    </button>
+                    <div className="space-y-4">
+                      <select
+                        className="p-2 outline-none border border-gray-300 rounded focus:ring-1 focus:ring-brandYellow dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                        value={selectedStatus}
+                        onChange={e => setSelectedStatus(e.target.value)}
+                      >
+                        <option value="OnHold">OnHold</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+
+                      <textarea
+                        className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-brandYellow outline-none dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                        placeholder="Add remarks here..."
+                        rows="2"
+                        value={remarks}
+                        onChange={e => setRemarks(e.target.value)}
+                      ></textarea>
+
+                      <div className="flex items-center gap-4">
+                        <button
+                          className="px-4 py-2 bg-brandYellow text-white rounded shadow hover:scale-105 hover:shadow-lg transition-transform duration-150"
+                          onClick={handleStatusSubmit}
+                        >
+                          Submit
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-gray-300 text-gray-800 rounded shadow hover:bg-gray-400 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition-colors"
+                          onClick={() => setIsEditing(false)}
+                        >
+                          <MdOutlineClose className="text-xl font-semibold" />
+                        </button>
+                      </div>
+                    </div>
                   </>
                 )}
               </div>
+            </div>
+            {/* Model No and SrStatus with Editable Option */}
+            <div className="p-2 ">
+              <span className="underline font-semibold text-gray-700 dark:text-gray-300">
+                Model No
+              </span>
+              <p className="text-gray-600 dark:text-gray-400">
+                {invoice.modelNo}
+              </p>
+              <span className="underline font-semibold text-gray-700 dark:text-gray-300 mt-2 block">
+                Billing Plant
+              </span>
+              <p className="text-gray-600 dark:text-gray-400">
+                {invoice.billingPlant}
+              </p>
             </div>
 
             {/* Allocated To and Allocated At */}
@@ -175,6 +178,12 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
               </span>
               <p className="text-gray-600 dark:text-gray-400">
                 {invoice.allocatedTo_name} / {invoice.allocatedTo_email}
+              </p>
+              <span className="underline font-semibold text-gray-700 dark:text-gray-300">
+                Remarks
+              </span>
+              <p className="text-gray-600 dark:text-gray-400">
+                {invoice?.remarks}
               </p>
             </div>
 

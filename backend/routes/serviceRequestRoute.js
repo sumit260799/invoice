@@ -15,6 +15,7 @@ const {
   getQuotationAllocationLogs,
   // allocateForInvoice,
   getInvoiceAllocationLogs,
+  updateExistingSR,
   updateServiceRequestStatus,
 } = require('../controllers/serviceRequestController.js');
 const {
@@ -55,6 +56,7 @@ router.post('/v1/allocate', allocateForQuotation);
 // router.post('/v1/allocate-invoice', allocateForInvoice);
 router.post('/v1/allocate-quotation-logs', getQuotationAllocationLogs);
 router.post('/v1/allocate-invoice-logs', getInvoiceAllocationLogs);
+router.post('/v1/update-existing-sr', updateExistingSR);
 router.use(errors());
 
 module.exports = router;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -11,77 +11,78 @@ import { setUser } from '../features/authSlice';
 // Zod validation schema
 const schema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'), // Added password validation
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  // useForm with Zod validation
+  const [darkMode, setDarkMode] = useState(false); // State for dark mode
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
   } = useForm({
-    resolver: zodResolver(schema), // Apply Zod schema for validation
+    resolver: zodResolver(schema),
   });
 
-  // Submit handler
+  // Check localStorage for dark mode preference on mount
+  useEffect(() => {
+    const isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+    setDarkMode(isDarkMode);
+  }, []);
+
   const onSubmit = async data => {
     try {
       const response = await post('/api/auth/login', data);
-      console.log('response?.data?', response?.data);
 
       if (response && response.status === 200) {
-        if (response?.data?.existUser.role == 'admin') {
-          navigate('/admin');
-        } else if (response?.data?.existUser.role == 'user') {
-          navigate('/');
-        } else if (response?.data?.existUser.role == 'manager') {
-          navigate('/manager');
-        } else if (response?.data?.existUser.role == 'spc') {
-          navigate('/spc');
-        }
+        const userRole = response?.data?.existUser.role;
+        navigate(
+          userRole === 'admin'
+            ? '/admin'
+            : userRole === 'user'
+            ? '/'
+            : `/${userRole}`
+        );
         toast.success(response?.data.message);
         dispatch(setUser(response?.data?.existUser));
         reset();
       } else {
-        toast.error('Registration failed. Please try again.');
+        toast.error('Login failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error during registration:', error);
-
-      if (error.response) {
-        toast.error(
-          error.response.data.message ||
-            'Registration failed. Please try again.'
-        );
-      } else {
-        toast.error('Registration failed. Please try again.');
-      }
+      toast.error('An error occurred. Please try again.');
     }
   };
 
   return (
-    <section className="max-w-2xl mx-auto p-6">
-      <div className="text-center mb-5 md:mb-10">
-        <h1 className="head-font text-3xl md:text-4xl underline">Invoice</h1>
-        <h4 className="text-gray-800 text-xl font-semibold mt-2 md:mt-6">
-          Sign in to your account
-        </h4>
-      </div>
+    <div
+      className={`${
+        darkMode ? 'bg-gray-800 text-gray-200' : 'bg-gray-50 text-gray-800'
+      } min-h-screen flex items-center justify-center`}
+    >
+      <section className="max-w-2xl w-full mx-auto p-6">
+        <div className="text-center mb-5 md:mb-10">
+          <h1 className="head-font text-3xl md:text-4xl underline">Invoice</h1>
+          <h4 className="text-xl font-semibold mt-2 md:mt-6">
+            Sign in to your account
+          </h4>
+        </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-col gap-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Email Field */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">Email Id</label>
+            <label className="text-sm mb-2 block">Email Id</label>
             <input
               {...register('email')}
-              type="email" // Change to "email" for better validation
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
-                errors.email ? 'border-red-500' : ''
+              type="email"
+              className={`bg-gray-100 text-gray-800 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
+                errors.email
+                  ? 'ring-red-500'
+                  : 'ring-blue-500 focus:ring-blue-500'
               }`}
               placeholder="Enter email"
             />
@@ -94,12 +95,14 @@ const Login = () => {
 
           {/* Password Field */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">Password</label>
+            <label className="text-sm mb-2 block">Password</label>
             <input
               {...register('password')}
               type="password"
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
-                errors.password ? 'border-red-500' : ''
+              className={`bg-gray-100 dark:bg-gray-800 text-gray-800 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
+                errors.password
+                  ? 'ring-red-500'
+                  : 'ring-blue-500 focus:ring-blue-500'
               }`}
               placeholder="Enter password"
             />
@@ -109,41 +112,42 @@ const Login = () => {
               </p>
             )}
           </div>
-        </div>
 
-        {/* Forgot Password link */}
-        <div className="text-right mt-2">
-          <Link
-            to="/forgot-password"
-            className="text-sm text-blue-600 hover:underline focus:outline-none"
-          >
-            Forgot Password?
-          </Link>
-        </div>
+          {/* Forgot Password */}
+          <div className="text-right">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
 
-        <div className="mt-6">
-          <button
-            type="submit"
-            className="py-3 px-7 text-sm font-semibold tracking-wider rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
-          >
-            Sign In
-          </button>
-        </div>
-      </form>
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              className="w-full py-3 px-6 text-sm font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+            >
+              Sign In
+            </button>
+          </div>
+        </form>
 
-      {/* "Don't have an account? Register here" link */}
-      <div className="text-center mt-4">
-        <p className="text-sm text-gray-700">
-          Don't have an account?{' '}
-          <Link
-            to="/register"
-            className="font-semibold text-blue-600 hover:underline"
-          >
-            Register here
-          </Link>
-        </p>
-      </div>
-    </section>
+        {/* Register Link */}
+        <div className="text-center mt-4">
+          <p className="text-sm">
+            Don't have an account?{' '}
+            <Link
+              to="/register"
+              className="font-semibold text-blue-600 hover:underline"
+            >
+              Register here
+            </Link>
+          </p>
+        </div>
+      </section>
+    </div>
   );
 };
 

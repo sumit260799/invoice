@@ -1,5 +1,5 @@
-const ServiceRequest = require("../models/serviceRequestSchema.js");
-const QuoteModel = require("../models/quotationModel.js");
+const ServiceRequest = require('../models/serviceRequestSchema.js');
+const QuoteModel = require('../models/quotationModel.js');
 
 /**
  * Updates the quote status in the related ServiceRequest based on indicators in quoteModel
@@ -64,18 +64,19 @@ const updateServiceRequestStatus = async () => {
 
       // Determine new status based on indicators in QuoteModel
       if (quote.createDate && !quote.releaseInd && !quote.billingDoc) {
-        newStatus = "PendingRelease";
+        newStatus = 'PendingRelease';
         console.log(newStatus);
         console.log(`For Pending Release`, serviceRequest.srStatus);
         newSRStatus = serviceRequest.srStatus;
         console.log(newSRStatus);
         if (
           !(
-            serviceRequest.srStatus === "OnHold" ||
-            serviceRequest.srStatus === "Rejected"
+            serviceRequest.srStatus === 'OnHold' ||
+            serviceRequest.srStatus === 'Rejected' ||
+            serviceRequest.srStatus === 'QuotationInProgress'
           )
         ) {
-          newSRStatus = "PendingForQuotationAllocation";
+          newSRStatus = 'PendingForQuotationAllocation';
           console.log(`Executing if`, newSRStatus);
         }
         await ServiceRequest.updateOne(
@@ -88,7 +89,7 @@ const updateServiceRequestStatus = async () => {
         );
         console.log(`For Pending Release newSRStatus`, newSRStatus);
       } else if (quote.releaseInd && !quote.approvalInd && !quote.rejectInd) {
-        newStatus = "ApprovalPending";
+        newStatus = 'ApprovalPending';
         console.log(`For Pending Approval`, serviceRequest.srStatus);
         // newSRStatus = '';
         await ServiceRequest.updateOne(
@@ -100,17 +101,18 @@ const updateServiceRequestStatus = async () => {
           }
         );
       } else if (quote.approvalInd && !quote.billingDoc) {
-        newStatus = "BillingPending";
+        newStatus = 'BillingPending';
         console.log(`For Pending Billing`, serviceRequest.srStatus);
         newSRStatus = serviceRequest.srStatus;
         console.log(newSRStatus);
         if (
           !(
-            serviceRequest.srStatus === "OnHold" ||
-            serviceRequest.srStatus === "Rejected"
+            serviceRequest.srStatus === 'OnHold' ||
+            serviceRequest.srStatus === 'Rejected' ||
+            serviceRequest.srStatus === 'InvoicingInProgress'
           )
         ) {
-          newSRStatus = "PendingforInvoiceAllocation";
+          newSRStatus = 'PendingforInvoiceAllocation';
           console.log(`Executing if`, newSRStatus);
         }
         console.log(`For Pending Billing newSRStatus`, newSRStatus);
@@ -123,17 +125,17 @@ const updateServiceRequestStatus = async () => {
           }
         );
       } else if (quote.rejectInd) {
-        newStatus = "Rejected";
+        newStatus = 'Rejected';
         console.log(`For Rejected`, serviceRequest.srStatus);
         newSRStatus = serviceRequest.srStatus;
         console.log(newSRStatus);
         if (
           !(
-            serviceRequest.srStatus === "OnHold" ||
-            serviceRequest.srStatus === "Rejected"
+            serviceRequest.srStatus === 'OnHold' ||
+            serviceRequest.srStatus === 'Rejected'
           )
         ) {
-          newSRStatus = "PendingForQuotationAllocation";
+          newSRStatus = 'PendingForQuotationAllocation';
         }
         console.log(`For Rejected newSRStatus`, newSRStatus);
         await ServiceRequest.updateOne(
@@ -145,8 +147,8 @@ const updateServiceRequestStatus = async () => {
           }
         );
       } else if (quote.billingDoc) {
-        newStatus = "Billed";
-        newSRStatus = "Closed";
+        newStatus = 'Billed';
+        newSRStatus = 'Closed';
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
@@ -175,7 +177,7 @@ const updateServiceRequestStatus = async () => {
       // }
     }
   } catch (error) {
-    console.error("Error updating service request status:", error.message);
+    console.error('Error updating service request status:', error.message);
   }
 };
 

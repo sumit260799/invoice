@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FaFilePdf, FaTimes } from "react-icons/fa";
+import React, { useState } from 'react';
+import { FaFilePdf, FaTimes } from 'react-icons/fa';
 
 const SideBar = ({
   inputValue,
@@ -16,13 +16,14 @@ const SideBar = ({
     <div className="fixed right-0 top-0 h-full w-96 bg-gray-50 dark:bg-gray-900 shadow-lg p-4 transition-transform duration-300">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold dark:text-white">
-          {selectedInvoice?.srStatus === "InvoicingInProgress" ||
-          selectedInvoice?.srStatus === "PendingforInvoiceAllocation" ||
-          selectedInvoice?.quoteStatus === "BillingPending"
-            ? "Allocate For Invoice"
-            : selectedInvoice?.srStatus === "QuotationInProgress"
-            ? "ReAllocate For Quotation"
-            : "Allocate For Quotation"}
+          {selectedInvoice?.srStatus === 'InvoicingInProgress'
+            ? 'Reallocate For Invoice'
+            : selectedInvoice?.srStatus === 'QuotationInProgress'
+            ? 'Reallocate For Quotation'
+            : selectedInvoice?.srStatus === 'PendingforInvoiceAllocation' ||
+              selectedInvoice?.quoteStatus === 'BillingPending'
+            ? 'Allocate For Invoice'
+            : 'Allocate For Quotation'}
         </h2>
 
         <button

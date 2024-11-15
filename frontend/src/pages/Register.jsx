@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { post } from '../services/ApiEndpoint';
 import { toast } from 'react-hot-toast';
+
 // Zod validation schema
 const schema = z
   .object({
@@ -33,7 +34,7 @@ const schema = z
   });
 
 const Register = () => {
-  // useForm with Zod validation
+  const [darkMode, setDarkMode] = useState(false); // State for dark mode
   const {
     register,
     handleSubmit,
@@ -42,6 +43,12 @@ const Register = () => {
   } = useForm({
     resolver: zodResolver(schema),
   });
+
+  // Check localStorage for dark mode preference on mount
+  useEffect(() => {
+    const isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+    setDarkMode(isDarkMode);
+  }, []);
 
   const onSubmit = async (data, e) => {
     e.preventDefault();
@@ -69,26 +76,28 @@ const Register = () => {
   };
 
   return (
-    <section className="max-w-4xl mx-auto p-6">
+    <section
+      className={`${
+        darkMode ? 'bg-gray-800 text-gray-200' : 'bg-gray-50 text-gray-800'
+      } min-h-screen mx-auto p-6`}
+    >
       <div className="text-center mb-5 md:mb-10">
         <h1 className="head-font text-3xl md:text-4xl underline">Invoice</h1>
-        <h4 className="text-gray-800 text-xl font-semibold mt-2 md:mt-6">
+        <h4 className="text-xl font-semibold mt-2 md:mt-6">
           Signup for an account
         </h4>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid sm:grid-cols-2 gap-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto">
+        <div className="grid sm:grid-cols-2  gap-8">
           {/* First Name */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">
-              First Name
-            </label>
+            <label className="text-sm mb-2 block">First Name</label>
             <input
               {...register('firstName')}
               type="text"
               aria-invalid={errors.firstName ? 'true' : 'false'}
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
+              className={`bg-gray-50 border border-gray-300 w-full text-sm px-4 py-3.5 rounded-md focus:bg-transparent transition-all ${
                 errors.firstName ? 'border-red-500' : ''
               }`}
               placeholder="Enter first name"
@@ -102,14 +111,12 @@ const Register = () => {
 
           {/* Last Name */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">
-              Last Name
-            </label>
+            <label className="text-sm mb-2 block">Last Name</label>
             <input
               {...register('lastName')}
               type="text"
               aria-invalid={errors.lastName ? 'true' : 'false'}
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
+              className={`bg-gray-50 border border-gray-300 w-full text-sm px-4 py-3.5 rounded-md focus:bg-transparent transition-all ${
                 errors.lastName ? 'border-red-500' : ''
               }`}
               placeholder="Enter last name"
@@ -123,12 +130,12 @@ const Register = () => {
 
           {/* Email */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">Email</label>
+            <label className="text-sm mb-2 block">Email</label>
             <input
               {...register('email')}
-              type="email" // Change to "email" for better validation
+              type="email"
               aria-invalid={errors.email ? 'true' : 'false'}
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
+              className={`bg-gray-50 border border-gray-300 w-full text-sm px-4 py-3.5 rounded-md focus:bg-transparent transition-all ${
                 errors.email ? 'border-red-500' : ''
               }`}
               placeholder="Enter email"
@@ -142,14 +149,12 @@ const Register = () => {
 
           {/* Mobile Number */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">
-              Mobile No.
-            </label>
+            <label className="text-sm mb-2 block">Mobile No.</label>
             <input
               {...register('phone')}
               type="text"
               aria-invalid={errors.phone ? 'true' : 'false'}
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
+              className={`bg-gray-50 border border-gray-300 w-full text-sm px-4 py-3.5 rounded-md focus:bg-transparent transition-all ${
                 errors.phone ? 'border-red-500' : ''
               }`}
               placeholder="Enter mobile number"
@@ -163,12 +168,12 @@ const Register = () => {
 
           {/* Password */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">Password</label>
+            <label className="text-sm mb-2 block">Password</label>
             <input
               {...register('password')}
               type="password"
               aria-invalid={errors.password ? 'true' : 'false'}
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
+              className={`bg-gray-50 border border-gray-300 w-full text-sm px-4 py-3.5 rounded-md focus:bg-transparent transition-all ${
                 errors.password ? 'border-red-500' : ''
               }`}
               placeholder="Enter password"
@@ -182,14 +187,12 @@ const Register = () => {
 
           {/* Confirm Password */}
           <div>
-            <label className="text-gray-800 text-sm mb-2 block">
-              Confirm Password
-            </label>
+            <label className="text-sm mb-2 block">Confirm Password</label>
             <input
               {...register('cpassword')}
               type="password"
               aria-invalid={errors.cpassword ? 'true' : 'false'}
-              className={`bg-gray-50 border border-gray-300 w-full text-gray-800 text-sm px-4 py-3.5 rounded-md focus:bg-transparent outline-blue-500 transition-all ${
+              className={`bg-gray-50 border border-gray-300 w-full text-sm px-4 py-3.5 rounded-md focus:bg-transparent transition-all ${
                 errors.cpassword ? 'border-red-500' : ''
               }`}
               placeholder="Enter confirm password"
