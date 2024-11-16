@@ -200,7 +200,7 @@ const Dashboard = () => {
               {isSidebarOpen ? <FiX /> : <FiMenu />}
             </button>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-center space-x-4">
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
@@ -217,7 +217,7 @@ const Dashboard = () => {
             <div className="relative">
               <button
                 onClick={handleUserClick}
-                className="text-2xl text-gray-800 dark:text-white"
+                className="text-2xl text-gray-800 dark:text-gray-100"
               >
                 <FiUser />
               </button>

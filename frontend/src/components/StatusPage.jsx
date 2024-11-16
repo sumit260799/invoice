@@ -1,12 +1,33 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchInvoices } from '../features/serviceRequestSlice';
+import {
+  fetchInvoices,
+  setSelectedZone,
+} from '../features/serviceRequestSlice';
 
 const StatusPage = () => {
   const dispatch = useDispatch();
-  const { statusCounts } = useSelector(state => state.serviceRequest);
+  const { statusCounts, selectedZone, invoices } = useSelector(
+    state => state.serviceRequest
+  );
+  const zones = [
+    'All',
+    'Zone1',
+    'Zone2',
+    'Zone3',
+    'Zone4',
+    'Zone5',
+    'Zone6',
+    'Zone7',
+    'Zone8',
+  ];
+
+  // console.log('🚀 ~ StatusPage ~ invoices:', invoices);
   const navigate = useNavigate();
+  const handleZoneChange = zone => {
+    dispatch(setSelectedZone(zone));
+  };
 
   useEffect(() => {
     dispatch(fetchInvoices());
@@ -101,6 +122,26 @@ const StatusPage = () => {
   return (
     <div className="min-h-screen p-4 sm:p-8 flex flex-col items-center bg-gradient-to-tl from-gray-200 to-gray-100 dark:bg-gradient-to-tr dark:from-gray-700 dark:to-gray-800 rounded-lg">
       <div className="w-full p-4 mb-6">
+        <div className="w-full p-4 mb-6">
+          <label
+            htmlFor="zone-select"
+            className="text-lg font-medium text-gray-700 dark:text-gray-200"
+          >
+            Select Zone:
+          </label>
+          <select
+            id="zone-select"
+            value={selectedZone}
+            onChange={e => handleZoneChange(e.target.value)}
+            className="ml-3 p-2 border rounded shadow-sm"
+          >
+            {zones.map(zone => (
+              <option key={zone} value={zone}>
+                {zone}
+              </option>
+            ))}
+          </select>
+        </div>
         <h2 className="text-start text-3xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
           SR Status
         </h2>

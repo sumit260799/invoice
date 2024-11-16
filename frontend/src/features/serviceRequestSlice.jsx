@@ -67,10 +67,37 @@ const serviceRequestSlice = createSlice({
       srStatusCounts: {},
       quoteStatusCounts: {},
     },
+    selectedZone: 'All',
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    setSelectedZone: (state, action) => {
+      state.selectedZone = action.payload;
+      const filteredInvoices =
+        state.selectedZone === 'All'
+          ? state.invoices
+          : state.invoices.filter(
+              invoice => invoice.zone === state.selectedZone
+            );
+
+      const srCounts = {};
+      const quoteCounts = {};
+
+      filteredInvoices.forEach(invoice => {
+        const srStatus = invoice.srStatus;
+        srCounts[srStatus] = (srCounts[srStatus] || 0) + 1;
+
+        const quoteStatus = invoice.quoteStatus;
+        quoteCounts[quoteStatus] = (quoteCounts[quoteStatus] || 0) + 1;
+      });
+
+      state.statusCounts = {
+        srStatusCounts: srCounts,
+        quoteStatusCounts: quoteCounts,
+      };
+    },
+  },
   extraReducers: builder => {
     builder
       .addCase(fetchInvoices.pending, state => {
@@ -143,4 +170,5 @@ const serviceRequestSlice = createSlice({
       });
   },
 });
+export const { setSelectedZone } = serviceRequestSlice.actions;
 export default serviceRequestSlice.reducer;
