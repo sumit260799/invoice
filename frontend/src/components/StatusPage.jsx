@@ -46,37 +46,31 @@ const StatusPage = () => {
       bg: 'bg-yellow-400',
       border: 'border-yellow-500',
       shadow: 'shadow-yellow-300 dark:shadow-[rgba(250,200,50,0.2)]',
-      text: 'text-white',
     },
     QuotationInProgress: {
       bg: 'bg-green-500',
       border: 'border-green-600',
       shadow: 'shadow-green-300 dark:shadow-[rgba(100,255,150,0.2)]',
-      text: 'text-white',
     },
     PendingforInvoiceAllocation: {
       bg: 'bg-blue-500',
       border: 'border-blue-600',
       shadow: 'shadow-blue-300 dark:shadow-[rgba(80,170,250,0.2)]',
-      text: 'text-white',
     },
     InvoicingInProgress: {
       bg: 'bg-indigo-500',
       border: 'border-indigo-600',
       shadow: 'shadow-indigo-300 dark:shadow-[rgba(120,100,255,0.2)]',
-      text: 'text-white',
     },
     OnHold: {
       bg: 'bg-purple-500',
       border: 'border-purple-600',
       shadow: 'shadow-purple-300 dark:shadow-[rgba(200,100,250,0.2)]',
-      text: 'text-white',
     },
     Rejected: {
       bg: 'bg-red-500',
       border: 'border-red-600',
       shadow: 'shadow-red-300 dark:shadow-[rgba(250,100,100,0.2)]',
-      text: 'text-white',
     },
   };
 
@@ -85,25 +79,21 @@ const StatusPage = () => {
       bg: 'bg-yellow-400',
       border: 'border-yellow-500',
       shadow: 'shadow-yellow-300 dark:shadow-[rgba(250,200,50,0.2)]',
-      text: 'text-white',
     },
     ApprovalPending: {
       bg: 'bg-green-500',
       border: 'border-green-600',
       shadow: 'shadow-green-300 dark:shadow-[rgba(100,255,150,0.2)]',
-      text: 'text-white',
     },
     BillingPending: {
       bg: 'bg-blue-500',
       border: 'border-blue-600',
       shadow: 'shadow-blue-300 dark:shadow-[rgba(80,170,250,0.2)]',
-      text: 'text-white',
     },
     Rejected: {
       bg: 'bg-red-500',
       border: 'border-red-600',
       shadow: 'shadow-red-300 dark:shadow-[rgba(250,100,100,0.2)]',
-      text: 'text-white',
     },
   };
 
@@ -120,38 +110,43 @@ const StatusPage = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 sm:p-8 flex flex-col items-center bg-gradient-to-tl from-gray-200 to-gray-100 dark:bg-gradient-to-tr dark:from-gray-700 dark:to-gray-800 rounded-lg">
-      <div className="w-full p-4 mb-6">
-        <div className="w-full p-4 mb-6">
+    <div className="min-h-screen p-4  flex flex-col items-center  rounded-lg">
+      <div className="w-full py-4 mb-6">
+        <div className="w-[50%]  mb-4">
           <label
             htmlFor="zone-select"
-            className="text-lg font-medium text-gray-700 dark:text-gray-200"
+            className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"
           >
-            Select Zone:
+            Select Zone
           </label>
           <select
             id="zone-select"
             value={selectedZone}
             onChange={e => handleZoneChange(e.target.value)}
-            className="ml-3 p-2 border rounded shadow-sm"
+            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition-all"
           >
             {zones.map(zone => (
-              <option key={zone} value={zone}>
-                {zone}
+              <option
+                key={zone}
+                value={zone}
+                className="text-gray-700 dark:text-gray-300"
+              >
+                {zone === 'All' ? 'All' : zone.replace(/\D/g, '')}
               </option>
             ))}
           </select>
         </div>
-        <h2 className="text-start text-3xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
-          SR Status
+
+        <h2 className="text-start text-2xl font-extrabold mb-6 text-gray-700 dark:text-gray-100">
+          Billing Request Status
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-10">
           {Object.keys(srStatusColors).map(status => (
             <div
               key={status}
               onClick={() => handleCardClick(status, 'srStatus')}
-              className={`px-4 py-6 ${srStatusColors[status].bg} ${srStatusColors[status].border} ${srStatusColors[status].shadow} border rounded-lg shadow-lg backdrop-blur-md transition-transform transform hover:translate-y-[-4px] hover:shadow-2xl flex flex-col items-center cursor-pointer`}
+              className={`px-1 py-6 bg-white text-gray-800 ${srStatusColors[status].border}  border-b-4  shadow-lg backdrop-blur-md transition-transform transform   hover:shadow-2xl flex flex-col items-center cursor-pointer`}
             >
               <p
                 className={`text-md font-semibold ${srStatusColors[status].text} text-center`}
@@ -168,17 +163,17 @@ const StatusPage = () => {
         </div>
       </div>
 
-      <div className="w-full p-4 mb-6">
-        <h2 className="text-start text-3xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
+      <div className="w-full py-4 mb-4">
+        <h2 className="text-start text-2xl font-extrabold mb-6 text-gray-700 dark:text-gray-100">
           Quotation Status
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-10">
           {Object.keys(quoteStatusColors).map(status => (
             <div
               key={status}
               onClick={() => handleQuoteClick(status, 'quoteStatus')}
-              className={`px-4 py-6 ${quoteStatusColors[status].bg} ${quoteStatusColors[status].border} ${quoteStatusColors[status].shadow} border rounded-lg shadow-lg backdrop-blur-md transition-transform transform hover:translate-y-[-4px] hover:shadow-2xl flex flex-col items-center cursor-pointer`}
+              className={`px-3 py-6 bg-white text-gray-800 ${quoteStatusColors[status].border}  border-b-4  shadow-lg backdrop-blur-md transition-transform transform   hover:shadow-2xl flex flex-col items-center cursor-pointer`}
             >
               <p
                 className={`text-md font-semibold ${quoteStatusColors[status].text} text-center`}

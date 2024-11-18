@@ -57,6 +57,20 @@ export const updateServiceRequestStatus = createAsyncThunk(
     }
   }
 );
+
+export const fetchAllocatedRequests = createAsyncThunk(
+  'requests/fetchAllocatedRequests',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await post('/api/user/v1/get-allocated-spc', { email }); // Send email in the body
+      return response.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || 'An error occurred'
+      );
+    }
+  }
+);
 // Create slice for invoices
 const serviceRequestSlice = createSlice({
   name: 'invoices',
@@ -67,6 +81,7 @@ const serviceRequestSlice = createSlice({
       srStatusCounts: {},
       quoteStatusCounts: {},
     },
+    spcAllocated: [],
     selectedZone: 'All',
     loading: false,
     error: null,
@@ -165,6 +180,19 @@ const serviceRequestSlice = createSlice({
         state.details = { ...state.details, srStatus: action.payload.srStatus }; // Update status in state
       })
       .addCase(updateServiceRequestStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // for allocated spc
+      .addCase(fetchAllocatedRequests.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllocatedRequests.fulfilled, (state, action) => {
+        state.loading = false;
+        state.spcAllocated = action.payload;
+      })
+      .addCase(fetchAllocatedRequests.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

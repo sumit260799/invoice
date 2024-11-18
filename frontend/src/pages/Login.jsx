@@ -79,7 +79,7 @@ const Login = () => {
             <input
               {...register('email')}
               type="email"
-              className={`bg-gray-100 text-gray-800 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
+              className={`bg-gray-100 text-gray-800 dark:text-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
                 errors.email
                   ? 'ring-red-500'
                   : 'ring-blue-500 focus:ring-blue-500'
@@ -99,7 +99,7 @@ const Login = () => {
             <input
               {...register('password')}
               type="password"
-              className={`bg-gray-100 dark:bg-gray-800 text-gray-800 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
+              className={`bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
                 errors.password
                   ? 'ring-red-500'
                   : 'ring-blue-500 focus:ring-blue-500'

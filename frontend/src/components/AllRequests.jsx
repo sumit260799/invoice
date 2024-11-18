@@ -224,7 +224,7 @@ const AllRequests = () => {
   };
 
   return (
-    <div className="w-full py-1 px-2  bg-gray-100 dark:bg-gray-800 border-1 rounded-lg min-h-screen">
+    <div className="w-full py-1 px-2  bg-white dark:bg-gray-800 border-1 rounded-lg ">
       <div className="my-2 flex items-center justify-between">
         <input
           type="text"
@@ -257,12 +257,12 @@ const AllRequests = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className=" bg-gray-50 dark:bg-gray-800  text-gray-900 dark:text-gray-100">
+            <tbody className=" bg-white dark:bg-gray-800   text-gray-900 dark:text-gray-100">
               {paginatedInvoices.map((invoice, index) => {
                 return (
                   <tr
                     key={index}
-                    className="border dark:hover:bg-gray-700 hover:bg-gray-200"
+                    className=" dark:hover:bg-gray-700 even:bg-gray-50 dark:even:bg-gray-700 hover:bg-gray-200"
                   >
                     <td
                       onClick={() => openModal(invoice)}
@@ -356,7 +356,7 @@ const AllRequests = () => {
       {/* Modal to show invoice details */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="relative bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300  rounded-lg w-[85vw]  h-[95vh] overflow-y-scroll custom-scrollbar shadow-lg border border-gray-300 dark:border-gray-700">
+          <div className="relative bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300  rounded-lg   h-[95vh] overflow-y-scroll custom-scrollbar shadow-lg border border-gray-300 dark:border-gray-700">
             <button
               onClick={closeModal}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100"

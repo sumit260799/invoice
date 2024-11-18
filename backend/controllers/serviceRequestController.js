@@ -638,6 +638,27 @@ const updateExistingSR = async (req, res) => {
       .json({ message: `Error updating Service Request: ${error.message}` });
   }
 };
+const getALlocatedRequestsForSpc = async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log('🚀 ~ getALlocatedRequestsForSpc ~ email:', email);
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required.' });
+    }
+    const requests = await ServiceRequest.find({ allocatedTo_email: email });
+    if (requests.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'No allocated requests found for this email.' });
+    }
+
+    res.status(200).json({ success: true, data: requests });
+  } catch (error) {
+    console.error('Error fetching allocated requests:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
 /**
  * Fetch allocation logs for Quotation.
  */
@@ -657,4 +678,5 @@ module.exports = {
   getInvoiceAllocationLogs,
   updateServiceRequestStatus,
   updateExistingSR,
+  getALlocatedRequestsForSpc,
 };

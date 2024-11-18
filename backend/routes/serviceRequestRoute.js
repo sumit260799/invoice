@@ -17,6 +17,7 @@ const {
   getInvoiceAllocationLogs,
   updateExistingSR,
   updateServiceRequestStatus,
+  getALlocatedRequestsForSpc,
 } = require('../controllers/serviceRequestController.js');
 const {
   serviceRequestValidationSchema,
@@ -57,6 +58,7 @@ router.post('/v1/allocate', allocateForQuotation);
 router.post('/v1/allocate-quotation-logs', getQuotationAllocationLogs);
 router.post('/v1/allocate-invoice-logs', getInvoiceAllocationLogs);
 router.post('/v1/update-existing-sr', updateExistingSR);
+router.post('/v1/get-allocated-spc', getALlocatedRequestsForSpc);
 router.use(errors());
 
 module.exports = router;

@@ -5,20 +5,20 @@ const port = process.env.PORT || 3000;
 const cors = require('cors');
 const cookieparser = require('cookie-parser');
 const path = require('path');
+// express middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieparser());
 
 // routes path
 const authRoutes = require('./routes/authRoutes');
 const serviceRequestRoute = require('./routes/serviceRequestRoute');
 const adminCreateUserRoute = require('./routes/userRoutes');
-const updateServiceRequestStatus = require('./services/cronUpdate');
+// const updateServiceRequestStatus = require('./services/cronUpdate');
 // db connection..
 const connectDB = require('./db/url');
 connectDB();
 
-// express middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieparser());
 // Serve files from the 'uploads' directory
 
 // cors setup.....
@@ -27,7 +27,7 @@ const corsOptions = {
   credentials: true,
 };
 
-updateServiceRequestStatus();
+// updateServiceRequestStatus();
 app.use(cors(corsOptions));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // routes...
