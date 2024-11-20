@@ -5,6 +5,7 @@ import CreateInvoice from './CreateInvoice';
 import ServiceRequestDetails from './ServiceRequestDetails';
 import ShowUsers from './ShowUsers';
 import StatusPage from './StatusPage';
+import SideBar from './SideBar';
 export {
   CreateUser,
   AllocateServiceRequest,
@@ -13,4 +14,5 @@ export {
   ServiceRequestDetails,
   ShowUsers,
   StatusPage,
+  SideBar,
 };

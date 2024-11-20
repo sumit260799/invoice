@@ -36,19 +36,25 @@ const Spc = () => {
         <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
           <thead>
             <tr className="bg-gray-200 dark:bg-gray-700">
-              <th className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                Service Request ID
+              <th className="border border-gray-300 dark:border-gray-600 px-2 py-1">
+                Billing Request ID
               </th>
-              <th className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+              <th className="border border-gray-300 dark:border-gray-600 px-2 py-1">
+                quotationNo
+              </th>
+              <th className="border border-gray-300 dark:border-gray-600 px-2 py-1">
                 Customer Name
               </th>
-              <th className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+              <th className="border border-gray-300 dark:border-gray-600 px-2 py-1">
                 Equipment Serial No
               </th>
-              <th className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                Quote Status
+              <th className="border border-gray-300 dark:border-gray-600 px-2 py-1">
+                Model No
               </th>
-              <th className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+              <th className="border border-gray-300 dark:border-gray-600 px-2 py-1">
+                QuoteStatus
+              </th>
+              <th className="border border-gray-300 dark:border-gray-600 px-2 py-1">
                 Remarks
               </th>
             </tr>
@@ -63,10 +69,16 @@ const Spc = () => {
                   {request.serviceRequestId}
                 </td>
                 <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+                  {request.quotationNo}
+                </td>
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
                   {request.customerName}
                 </td>
                 <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
                   {request.equipmentSerialNo}
+                </td>
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+                  {request.modelNo}
                 </td>
                 <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
                   {request.quoteStatus}

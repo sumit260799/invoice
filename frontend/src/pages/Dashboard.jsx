@@ -120,7 +120,7 @@ const Dashboard = () => {
                   </li>
                 </>
               )}
-              {user?.role === 'user' && (
+              {user?.role === 'salesUser' && (
                 <>
                   <li className="">
                     <Link to="/" className={linkClasses('/')}>
@@ -148,10 +148,10 @@ const Dashboard = () => {
                   </li>
                 </>
               )}
-              {user?.role === 'manager' && (
+              {user?.role === 'billingManager' && (
                 <>
                   <li className="">
-                    <Link to="/" className={linkClasses('/manager')}>
+                    <Link to="/" className={linkClasses('/billingManager')}>
                       <FaHome className="inline-block text-md mr-2" />
                       Home
                     </Link>
@@ -167,10 +167,13 @@ const Dashboard = () => {
                   </li>
                 </>
               )}
-              {user?.role === 'spc' && (
+              {user?.role === 'billingAgent' && (
                 <>
                   <li className="">
-                    <Link to="/spc" className={linkClasses('/spc')}>
+                    <Link
+                      to="/billingAgent"
+                      className={linkClasses('/billingAgent')}
+                    >
                       <FaHome className="inline-block text-md mr-2" />
                       Home
                     </Link>

@@ -9,7 +9,7 @@ const SpcLayout = () => {
   const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
-    if (!user || user.role !== 'spc') {
+    if (!user || user.role !== 'billingAgent') {
       navigate('/login');
     }
   }, [navigate, user]);

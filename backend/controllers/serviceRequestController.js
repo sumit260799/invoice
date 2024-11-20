@@ -174,11 +174,12 @@ const getServiceRequest = async (req, res) => {
 
 const getServiceRequestByStatus = async (req, res) => {
   try {
-    const { srStatus, quoteStatus } = req.query; // Destructure both srStatus and quoteStatus from the query
+    const { billingProgressStatus, quoteStatus } = req.query; // Destructure both srStatus and quoteStatus from the query
 
     // Build the filter object dynamically based on available query parameters
     const filter = {};
-    if (srStatus) filter.srStatus = srStatus;
+    if (billingProgressStatus)
+      filter.billingProgressStatus = billingProgressStatus;
     if (quoteStatus) filter.quoteStatus = quoteStatus;
 
     // Find service requests based on the filter
@@ -218,7 +219,11 @@ const allocateServiceRequest = async (req, res) => {
   try {
     const { name, email, serviceRequestId, action, srStatus } = req.body;
     const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
-    const user = await AdminCreateUser.findOne({ name, email, role: 'spc' });
+    const user = await AdminCreateUser.findOne({
+      name,
+      email,
+      role: 'billingAgent',
+    });
 
     if (!user) {
       return res.status(404).json({ message: `${name} not found!` });
@@ -280,7 +285,7 @@ const getServiceRequestbyEmail = async (req, res) => {
 
     const serviceRequest = await ServiceRequest.find({
       allocatedTo,
-      role: 'spc',
+      role: 'billingAgent',
     }).select('-_id -__v');
 
     if (!serviceRequest) {
@@ -298,10 +303,10 @@ const getServiceRequestbyEmail = async (req, res) => {
 };
 const getAllName = async (req, res) => {
   try {
-    // Fetching users with role 'spc' and selecting 'empName' and 'email'
-    const allempData = await AdminCreateUser.find({ role: 'spc' }).select(
-      '-_id name email'
-    );
+    // Fetching users with role 'billingAgent' and selecting 'empName' and 'email'
+    const allempData = await AdminCreateUser.find({
+      role: 'billingAgent',
+    }).select('-_id name email');
 
     // Mapping the data to include both empName and email in the response
     const empList = allempData.map(user => ({
@@ -388,7 +393,11 @@ const allocateForQuotation = async (req, res, next) => {
         .json({ message: `Service Request ${serviceRequestId} not found!` });
     }
 
-    const user = await AdminCreateUser.findOne({ name, email, role: 'spc' });
+    const user = await AdminCreateUser.findOne({
+      name,
+      email,
+      role: 'billingAgent',
+    });
 
     if (!user) {
       return res.status(202).json({ message: `${name} not found!` });
@@ -569,9 +578,85 @@ const updateServiceRequestStatus = async (req, res) => {
   }
 };
 
+// const updateExistingSR = async (req, res) => {
+//   try {
+//     const {
+//       serviceRequestId,
+//       billingProgressStatus,
+//       equipmentSerialNo,
+//       modelNo,
+//       remarks,
+//     } = req.body;
+//     console.log('body', req.body);
+
+//     // Validate Service Request ID
+//     if (!serviceRequestId) {
+//       return res
+//         .status(400)
+//         .json({ message: 'Service Request ID is required.' });
+//     }
+
+//     // Prepare the update fields dynamically
+//     const updateFields = {
+//       lastUpdatedAt: Date.now(), // Always update the timestamp
+//     };
+
+//     if (billingProgressStatus) {
+//       // Validate srStatus only if provided
+//       if (!['OnHold', 'Rejected'].includes(billingProgressStatus)) {
+//         return res.status(400).json({
+//           message: `Invalid srStatus. Allowed values are: OnHold, Rejected.`,
+//         });
+//       }
+//       updateFields.billingProgressStatus = billingProgressStatus;
+//     }
+
+//     if (remarks) {
+//       updateFields.remarks = remarks;
+//     }
+
+//     if (equipmentSerialNo) {
+//       updateFields.equipmentSerialNo = equipmentSerialNo;
+//     }
+
+//     if (modelNo) {
+//       updateFields.modelNo = modelNo;
+//     }
+
+//     // Update the ServiceRequest
+//     const updatedSR = await ServiceRequest.findOneAndUpdate(
+//       { serviceRequestId },
+//       updateFields,
+//       { new: true } // Return the updated document
+//     );
+
+//     if (!updatedSR) {
+//       return res.status(404).json({
+//         message: `Service Request ID ${serviceRequestId} not found.`,
+//       });
+//     }
+
+//     // Log the change
+//     await ChangeLog.create({
+//       serviceRequestId,
+//       actionType: billingProgressStatus,
+//       remarks: remarks || '',
+//     });
+
+//     res.status(200).json({
+//       message: `Service Request ${serviceRequestId} updated successfully.`,
+//       updatedServiceRequest: updatedSR,
+//     });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: `Error updating Service Request: ${error.message}` });
+//   }
+// };
 const updateExistingSR = async (req, res) => {
   try {
-    const { serviceRequestId, srStatus, remarks } = req.body; // Include remarks for logging purposes
+    const { serviceRequestId, billingRqstStatus, remarks } = req.body; // Include remarks for logging purposes
+    console.log('🚀 ~ updateExistingSR ~ req.body:', req.body);
 
     // Validate inputs
     if (!serviceRequestId) {
@@ -584,15 +669,15 @@ const updateExistingSR = async (req, res) => {
       return res.status(200).json({ message: `Remarks required.` });
     }
 
-    if (!srStatus) {
+    if (!billingRqstStatus) {
       return res
         .status(200)
-        .json({ message: 'Status (srStatus) is required.' });
+        .json({ message: 'Status (billingRqstStatus) is required.' });
     } else {
       // Allowed statuses for manual updates
-      if (!['OnHold', 'Rejected'].includes(srStatus)) {
+      if (!['OnHold', 'Rejected'].includes(billingRqstStatus)) {
         return res.status(200).json({
-          message: `Invalid srStatus. Allowed values are: OnHold, Rejected.`,
+          message: `Invalid billingRqstStatus. Allowed values are: OnHold, Rejected.`,
         });
       }
 
@@ -601,7 +686,7 @@ const updateExistingSR = async (req, res) => {
         { serviceRequestId },
         {
           // $set: {
-          srStatus,
+          billingEditStatus: billingRqstStatus,
           lastUpdatedAt: Date.now(), // Update the timestamp
           remarks: remarks || '', // Optional field for logging manual changes
           // },
@@ -609,12 +694,13 @@ const updateExistingSR = async (req, res) => {
         { new: true } // Return the updated document
       );
 
-      await ChangeLog.create({
+      await ChangeLog.findOneAndUpdate({
         serviceRequestId,
-        // previousStatus: serviceRequest.srStatus || 'None',
-        // newStatus: allocatedTo,
+        changeType: billingRqstStatus,
+        // previousStatus: serviceRequest.billingRqstStatus || 'None',
+        newStatus: billingRqstStatus,
         // updatedBy,
-        actionType: srStatus,
+        // actionType: billingRqstStatus,
         remarks: remarks,
       });
 
@@ -625,7 +711,7 @@ const updateExistingSR = async (req, res) => {
       }
 
       // Log the change for historical purposes
-      // await saveStatusChangeLog(serviceRequestId, srStatus, remarks);
+      // await saveStatusChangeLog(serviceRequestId, billingRqstStatus, remarks);
 
       res.status(201).json({
         message: `Service Request ${serviceRequestId} updated successfully.`,
@@ -638,6 +724,30 @@ const updateExistingSR = async (req, res) => {
       .json({ message: `Error updating Service Request: ${error.message}` });
   }
 };
+
+// Helper function to save the status change log
+// export const saveStatusChangeLog = async (serviceRequestId, newStatus, remarks) => {
+//     try {
+//         const logEntry = {
+//             serviceRequestId,
+//             newStatus,
+//             remarks: remarks || 'No remarks provided',
+//             updatedAt: new Date(),
+//         };
+
+//         // Assuming you have a StatusChangeLog collection
+//         const StatusChangeLog = mongoose.model('StatusChangeLog', new mongoose.Schema({
+//             serviceRequestId: String,
+//             newStatus: String,
+//             remarks: String,
+//             updatedAt: Date,
+//         }));
+
+//         await StatusChangeLog.create(logEntry);
+//     } catch (logError) {
+//         console.error('Error saving status change log:', logError.message);
+//     }
+// };
 const getALlocatedRequestsForSpc = async (req, res) => {
   try {
     const { email } = req.body;
@@ -659,9 +769,78 @@ const getALlocatedRequestsForSpc = async (req, res) => {
   }
 };
 
-/**
- * Fetch allocation logs for Quotation.
- */
+const getAllQuotationNumbers = async (req, res) => {
+  try {
+    // Fetch all documents from QuoteModel and select only the 'quotationNo' field
+    const quotationNumbers = await QuoteModel.find({}, 'quotationNo');
+
+    // Check if quotation numbers exist
+    if (quotationNumbers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No quotation numbers found',
+      });
+    }
+
+    // Add a check to see if each quotationNo exists in the ServiceRequest model
+    const enhancedQuotationNumbers = await Promise.all(
+      quotationNumbers.map(async quote => {
+        const existsInServiceRequest = await ServiceRequest.exists({
+          quotationNo: quote.quotationNo,
+        });
+        return {
+          quotationNo: quote.quotationNo,
+          quotationCreated: !!existsInServiceRequest, // true if exists, false otherwise
+        };
+      })
+    );
+
+    // Send the response with the fetched quotation numbers
+    res.status(200).json({
+      success: true,
+      data: enhancedQuotationNumbers,
+    });
+  } catch (error) {
+    // Handle errors
+    console.error('Error fetching quotation numbers:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+const revokeBillingEditStatus = async (req, res) => {
+  try {
+    const { serviceRequestId } = req.body;
+
+    const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
+    console.log(
+      '🚀 ~ revokeBillingEditStatus ~ serviceRequest:',
+      serviceRequest
+    );
+
+    if (!serviceRequest) {
+      return res.status(404).json({ message: 'Service request not found.' });
+    }
+
+    if (
+      serviceRequest.billingEditStatus === 'OnHold' ||
+      serviceRequest.billingEditStatus === 'Rejected'
+    ) {
+      serviceRequest.billingEditStatus = 'None'; // Clear the status
+      await serviceRequest.save();
+      return res
+        .status(200)
+        .json({ message: 'Billing status revoked successfully.' });
+    } else {
+      return res.status(400).json({ message: 'Cannot revoke this status.' });
+    }
+  } catch (error) {
+    console.error('Error revoking billing status:', error);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+};
 module.exports = {
   createServiceRequest,
   getServiceRequest,
@@ -679,4 +858,6 @@ module.exports = {
   updateServiceRequestStatus,
   updateExistingSR,
   getALlocatedRequestsForSpc,
+  getAllQuotationNumbers,
+  revokeBillingEditStatus,
 };

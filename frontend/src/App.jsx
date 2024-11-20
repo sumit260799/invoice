@@ -7,6 +7,7 @@ import {
   Admin,
   NotFound,
   Home,
+  BillingEditStatus,
 } from './pages/index';
 import { Toaster } from 'react-hot-toast';
 import { updateUser } from './features/authSlice';
@@ -70,7 +71,7 @@ function App() {
           <Route path="service-requests" element={<AllRequests />} />
         </Route>
         <Route path="/" element={<ManagerLayout />}>
-          <Route path="manager" element={<Manager />} />
+          <Route path="billingManager" element={<Manager />} />
 
           <Route path="all-requests" element={<AllRequests />} />
           {/* <Route
@@ -79,7 +80,7 @@ function App() {
           /> */}
         </Route>
         <Route path="/" element={<SpcLayout />}>
-          <Route path="spc" element={<Spc />} />
+          <Route path="billingAgent" element={<Spc />} />
         </Route>
         <Route path="/" element={<CommonLayout />}>
           <Route path="/billed" element={<CompletedTasks />} />
@@ -87,10 +88,17 @@ function App() {
             path="service-requests/:user/:serviceRequestId"
             element={<ServiceRequestDetails />}
           />
-          <Route path="/status/:srStatus" element={<StatusDataPage />} />
+          <Route
+            path="/status/:billingProgressStatus"
+            element={<StatusDataPage />}
+          />
           <Route
             path="/quoteStatus/:quoteStatus"
             element={<StatusDataPage />}
+          />
+          <Route
+            path="/billingEditStatus/:billingEditStatus"
+            element={<BillingEditStatus />}
           />
 
           <Route path="forgot-password" element={<ForgotPassword />} />

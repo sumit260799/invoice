@@ -60,106 +60,176 @@ const updateServiceRequestStatus = async () => {
       }
 
       let newStatus = serviceRequest.quoteStatus;
-      let newSRStatus = serviceRequest.srStatus;
+      let newbillingProgressStatus = serviceRequest.billingProgressStatus;
+      let editStatus = serviceRequest.billingEditStatus;
 
       // Determine new status based on indicators in QuoteModel
-      if (quote.createDate && !quote.releaseInd && !quote.billingDoc) {
+      if (
+        quote.createDate &&
+        !quote.releaseInd &&
+        !quote.approvalInd &&
+        !quote.billingDoc
+      ) {
         newStatus = 'PendingRelease';
         console.log(newStatus);
-        console.log(`For Pending Release`, serviceRequest.srStatus);
-        newSRStatus = serviceRequest.srStatus;
-        console.log(newSRStatus);
+        console.log(
+          `For Pending Release`,
+          serviceRequest.billingProgressStatus
+        );
+        newbillingProgressStatus = serviceRequest.billingProgressStatus;
+        console.log(newbillingProgressStatus);
         if (
           !(
-            serviceRequest.srStatus === 'OnHold' ||
-            serviceRequest.srStatus === 'Rejected' ||
-            serviceRequest.srStatus === 'QuotationInProgress'
-          )
+            (serviceRequest.billingEditStatus === 'OnHold' ||
+              serviceRequest.billingEditStatus === 'Rejected') &&
+            serviceRequest.billingProgressStatus === 'QuotationInProgress'
+          ) ||
+          serviceRequest.billingProgressStatus === 'QuotationInProgress'
         ) {
-          newSRStatus = 'PendingForQuotationAllocation';
-          console.log(`Executing if`, newSRStatus);
+          newbillingProgressStatus = 'PendingForQuotationAllocation';
+          console.log(`Executing if`, newbillingProgressStatus);
+        } else if (
+          (serviceRequest.billingEditStatus === 'OnHold' ||
+            serviceRequest.billingEditStatus === 'Rejected') &&
+          serviceRequest.billingProgressStatus === 'QuotationInProgress'
+        ) {
+          newbillingProgressStatus;
+          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
         }
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
             quoteStatus: newStatus,
-            srStatus: newSRStatus,
+            billingProgressStatus: newbillingProgressStatus,
             lastUpdatedAt: Date.now(),
           }
         );
-        console.log(`For Pending Release newSRStatus`, newSRStatus);
-      } else if (quote.releaseInd && !quote.approvalInd && !quote.rejectInd) {
+        console.log(
+          `For Pending Release newbillingProgressStatus`,
+          newbillingProgressStatus
+        );
+      } else if (
+        quote.releaseInd &&
+        (!quote.approvalInd ||
+          quote.approvalInd === 'X' ||
+          quote.approvalInd === 'XX' ||
+          !quote.approvalInd === 'XXX') &&
+        !quote.rejectInd
+      ) {
         newStatus = 'ApprovalPending';
-        console.log(`For Pending Approval`, serviceRequest.srStatus);
-        // newSRStatus = '';
+        console.log(
+          `For Pending Approval`,
+          serviceRequest.billingProgressStatus
+        );
+        // newbillingProgressStatus = '';
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
             quoteStatus: newStatus,
-            srStatus: newSRStatus,
+            billingProgressStatus: newbillingProgressStatus,
             lastUpdatedAt: Date.now(),
           }
         );
-      } else if (quote.approvalInd && !quote.billingDoc) {
+      } else if (
+        quote.releaseInd &&
+        quote.approvalInd === 'XXX' &&
+        !quote.billingDoc
+      ) {
         newStatus = 'BillingPending';
-        console.log(`For Pending Billing`, serviceRequest.srStatus);
-        newSRStatus = serviceRequest.srStatus;
-        console.log(newSRStatus);
+        console.log(
+          `For Pending Billing`,
+          serviceRequest.billingProgressStatus
+        );
+        newbillingProgressStatus = serviceRequest.billingProgressStatus;
+        console.log(newbillingProgressStatus);
         if (
           !(
-            serviceRequest.srStatus === 'OnHold' ||
-            serviceRequest.srStatus === 'Rejected' ||
-            serviceRequest.srStatus === 'InvoicingInProgress'
-          )
+            (serviceRequest.billingEditStatus === 'OnHold' ||
+              serviceRequest.billingEditStatus === 'Rejected') &&
+            serviceRequest.billingProgressStatus === 'InvoicingInProgress'
+          ) ||
+          serviceRequest.billingProgressStatus === 'InvoicingInProgress'
         ) {
-          newSRStatus = 'PendingforInvoiceAllocation';
-          console.log(`Executing if`, newSRStatus);
+          newbillingProgressStatus = 'PendingforInvoiceAllocation';
+          console.log(`Executing if`, newbillingProgressStatus);
+        } else if (
+          (serviceRequest.billingEditStatus === 'OnHold' ||
+            serviceRequest.billingEditStatus === 'Rejected') &&
+          serviceRequest.billingProgressStatus === 'InvoicingInProgress'
+        ) {
+          newbillingProgressStatus;
+          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
         }
-        console.log(`For Pending Billing newSRStatus`, newSRStatus);
+        console.log(
+          `For Pending Billing newbillingProgressStatus`,
+          newbillingProgressStatus
+        );
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
             quoteStatus: newStatus,
-            srStatus: newSRStatus,
+            billingProgressStatus: newbillingProgressStatus,
             lastUpdatedAt: Date.now(),
           }
         );
       } else if (quote.rejectInd) {
         newStatus = 'Rejected';
-        console.log(`For Rejected`, serviceRequest.srStatus);
-        newSRStatus = serviceRequest.srStatus;
-        console.log(newSRStatus);
+        console.log(`For Rejected`, serviceRequest.billingProgressStatus);
+        newbillingProgressStatus = serviceRequest.billingProgressStatus;
+        console.log(newbillingProgressStatus);
         if (
           !(
-            serviceRequest.srStatus === 'OnHold' ||
-            serviceRequest.srStatus === 'Rejected'
+            serviceRequest.billingEditStatus === 'OnHold' ||
+            serviceRequest.billingEditStatus === 'Rejected'
           )
         ) {
-          newSRStatus = 'PendingForQuotationAllocation';
+          newbillingProgressStatus = 'PendingForQuotationAllocation';
+        } else if (
+          serviceRequest.billingEditStatus === 'OnHold' ||
+          serviceRequest.billingEditStatus === 'Rejected'
+        ) {
+          newbillingProgressStatus;
+          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
         }
-        console.log(`For Rejected newSRStatus`, newSRStatus);
+        console.log(
+          `For Rejected newbillingProgressStatus`,
+          newbillingProgressStatus
+        );
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
             quoteStatus: newStatus,
-            srStatus: newSRStatus,
+            billingProgressStatus: newbillingProgressStatus,
             lastUpdatedAt: Date.now(),
           }
         );
       } else if (quote.billingDoc) {
         newStatus = 'Billed';
-        newSRStatus = 'Closed';
+        if (
+          !(
+            serviceRequest.billingEditStatus === 'OnHold' ||
+            serviceRequest.billingEditStatus === 'Rejected'
+          )
+        ) {
+          newbillingProgressStatus = 'Closed';
+        } else if (
+          serviceRequest.billingEditStatus === 'OnHold' ||
+          serviceRequest.billingEditStatus === 'Rejected'
+        ) {
+          newbillingProgressStatus;
+          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
+        }
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
             quoteStatus: newStatus,
-            srStatus: newSRStatus,
+            billingProgressStatus: newbillingProgressStatus,
             lastUpdatedAt: Date.now(),
           }
         );
       }
 
-      console.log(`newSRStatus`, newSRStatus);
+      console.log(`newbillingProgressStatus`, newbillingProgressStatus);
 
       // Update the service request only if the status has changed
       // if (serviceRequest.quoteStatus !== newStatus) {
@@ -167,18 +237,17 @@ const updateServiceRequestStatus = async () => {
       //         { serviceRequestId: serviceRequest.serviceRequestId },
       //         {
       //             quoteStatus: newStatus,
-      //             srStatus: newSRStatus,
+      //             billingProgressStatus: newbillingProgressStatus,
       //             lastUpdatedAt: Date.now()
       //         }
       //     );
       //     console.log(`Updated ServiceRequest ${serviceRequest.serviceRequestId} to ${newStatus}`);
-      //     console.log(`updated SR: ${serviceRequest.srStatus}`);
-      //     console.log(`newSRStatus after updating`, newSRStatus);
+      //     console.log(`updated SR: ${serviceRequest.billingProgressStatus}`);
+      //     console.log(`newbillingProgressStatus after updating`, newbillingProgressStatus);
       // }
     }
   } catch (error) {
     console.error('Error updating service request status:', error.message);
   }
 };
-
 module.exports = updateServiceRequestStatus;

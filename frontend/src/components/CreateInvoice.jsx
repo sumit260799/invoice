@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
-import { post } from '../services/ApiEndpoint';
+import React, { useRef, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { MdOutlineAttachFile } from 'react-icons/md';
 import { RxCross2 } from 'react-icons/rx';
+import { fetchAllQuotationNo } from '../features/serviceRequestSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const CreateInvoice = () => {
+  const dispatch = useDispatch();
+  const containerRef = useRef(null);
+  const { quotationNoList } = useSelector(state => state.serviceRequest);
+  console.log('🚀 ~ CreateInvoice ~ quotationNoList:', quotationNoList);
   const [formData, setFormData] = useState({
     quotationNo: '',
     industryDiv: '',
@@ -19,21 +24,54 @@ const CreateInvoice = () => {
   });
   const [errors, setErrors] = useState({});
   const [files, setFiles] = useState([]);
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+
+  useEffect(() => {
+    dispatch(fetchAllQuotationNo());
+  }, [dispatch]);
+  // Function to handle outside click
+  useEffect(() => {
+    const handleOutsideClick = event => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setFilteredSuggestions([]); // Close dropdown
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
 
   const handleInputChange = e => {
     const { name, value } = e.target;
+
+    if (name === 'quotationNo') {
+      // Filter suggestions based on input value
+      const suggestions = quotationNoList.filter(q =>
+        q.quotationNo.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredSuggestions(suggestions);
+    }
+
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSuggestionClick = suggestion => {
+    setFormData({ ...formData, quotationNo: suggestion });
+    setFilteredSuggestions([]); // Clear suggestions after selection
   };
 
   const handleFileChange = e => {
     const selectedFiles = Array.from(e.target.files);
-    // Check total files after adding new ones
     if (selectedFiles.length + files.length > 8) {
       toast.error('You can only select up to 8 files.');
     } else {
       setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
     }
-
     e.target.value = '';
   };
 
@@ -103,37 +141,77 @@ const CreateInvoice = () => {
   };
 
   return (
-    <div className="mx-auto p-6 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold dark:text-white text-gray-800 mb-4">
+    <div className="mx-auto px-6 py-4 mb-5 bg-white dark:bg-gray-800  rounded-lg">
+      <h2 className="text-xl font-bold dark:text-gray-200 text-gray-800 mb-4">
         Service Request Form
       </h2>
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 dark:text-gray-400 text-gray-800"
+        className="grid grid-cols-1 md:grid-cols-3 gap-4 dark:text-gray-300 text-gray-800"
         encType="multipart/form-data"
         autoComplete="off"
       >
         {/* Quotation No */}
-        <div className="mb-4">
+        <div className="relative mb-4" ref={containerRef}>
           <label
             htmlFor="quotationNo"
             className="block text-sm font-semibold mb-2"
           >
             Quotation No
           </label>
-          <input
-            type="text"
-            id="quotationNo"
-            name="quotationNo"
-            value={formData.quotationNo}
-            onChange={handleInputChange}
-            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none   w-full ${
-              errors.quotationNo ? 'border-red-500' : ''
-            }`}
-            autoComplete="off"
-          />
+          <div className="flex items-center relative">
+            <input
+              type="text"
+              id="quotationNo"
+              name="quotationNo"
+              value={formData.quotationNo}
+              onChange={handleInputChange}
+              onFocus={() => setFilteredSuggestions(quotationNoList)} // Show suggestions on focus
+              className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full pr-8 ${
+                errors.quotationNo ? 'border-red-500' : ''
+              }`}
+              autoComplete="off"
+            />
+            {formData.quotationNo && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({ ...formData, quotationNo: '' });
+                  setFilteredSuggestions([]);
+                }}
+                className="absolute text-[2rem] right-2 text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
+              >
+                ×
+              </button>
+            )}
+          </div>
           {errors.quotationNo && (
             <p className="text-red-500 text-sm">{errors.quotationNo}</p>
+          )}
+          {filteredSuggestions.length > 0 && (
+            <ul className="absolute z-10 bg-white dark:bg-gray-700 border dark:border-gray-600 border-gray-300 rounded-[5px] mt-1 w-full max-h-32  overflow-y-auto custom-scrollbar shadow-lg">
+              {filteredSuggestions.map((suggestion, index) => (
+                <li
+                  key={index}
+                  onClick={() => {
+                    handleSuggestionClick(suggestion.quotationNo);
+                    setFilteredSuggestions([]); // Close dropdown
+                  }}
+                  className="px-2 py-1 cursor-pointer hover:bg-gray-200 border-b text-sm  dark:hover:bg-gray-600"
+                >
+                  {suggestion.quotationNo}
+                  {suggestion.quotationCreated ? (
+                    <span className="text-white text-xs ml-2 px-2  bg-red-500 rounded-lg">
+                      already used
+                    </span>
+                  ) : (
+                    <span className="text-white bg-green-500  text-xs ml-2 px-2  rounded-lg">
+                      available
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
@@ -150,7 +228,7 @@ const CreateInvoice = () => {
             name="industryDiv"
             value={formData.industryDiv}
             onChange={handleInputChange}
-            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
+            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
               errors.industryDiv ? 'border-red-500' : ''
             }`}
           >
@@ -177,21 +255,21 @@ const CreateInvoice = () => {
             name="zone"
             value={formData.zone}
             onChange={handleInputChange}
-            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
+            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
               errors.zone ? 'border-red-500' : ''
             }`}
           >
             <option value="" disabled>
               Select Zone
             </option>
-            <option value="Zone1">Zone1</option>
-            <option value="Zone2">Zone2</option>
-            <option value="Zone3">Zone3</option>
-            <option value="Zone4">Zone4</option>
-            <option value="Zone5">Zone5</option>
-            <option value="Zone6">Zone6</option>
-            <option value="Zone7">Zone7</option>
-            <option value="Zone8">Zone8</option>
+            <option value="Zone1">1</option>
+            <option value="Zone2">2</option>
+            <option value="Zone3">3</option>
+            <option value="Zone4">4</option>
+            <option value="Zone5">5</option>
+            <option value="Zone6">6</option>
+            <option value="Zone7">7</option>
+            <option value="Zone8">8</option>
           </select>
           {errors.zone && <p className="text-red-500 text-sm">{errors.zone}</p>}
         </div>
@@ -210,7 +288,7 @@ const CreateInvoice = () => {
             name="equipmentSerialNo"
             value={formData.equipmentSerialNo}
             onChange={handleInputChange}
-            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
+            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
               errors.equipmentSerialNo ? 'border-red-500' : ''
             }`}
             autoComplete="off"
@@ -231,7 +309,7 @@ const CreateInvoice = () => {
             name="modelNo"
             value={formData.modelNo}
             onChange={handleInputChange}
-            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
+            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
               errors.modelNo ? 'border-red-500' : ''
             }`}
             autoComplete="off"
@@ -255,7 +333,7 @@ const CreateInvoice = () => {
             name="customerName"
             value={formData.customerName}
             onChange={handleInputChange}
-            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full ${
+            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full ${
               errors.customerName ? 'border-red-500' : ''
             }`}
             autoComplete="off"
@@ -279,7 +357,7 @@ const CreateInvoice = () => {
             name="billingPlant"
             value={formData.billingPlant}
             onChange={handleInputChange}
-            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full ${
+            className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full ${
               errors.billingPlant ? 'border-red-500' : ''
             }`}
             autoComplete="off"
@@ -303,13 +381,13 @@ const CreateInvoice = () => {
             name="salesUserOnBehalfOf"
             value={formData.salesUserOnBehalfOf}
             onChange={handleInputChange}
-            className="border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full "
+            className="border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full "
             autoComplete="off"
           />
         </div>
 
         {/* Remarks */}
-        <div className="mb-4 col-span-2">
+        <div className="mb-4 col-span-3">
           <label htmlFor="remarks" className="block text-sm font-semibold mb-2">
             Remarks
           </label>
@@ -318,12 +396,12 @@ const CreateInvoice = () => {
             name="remarks"
             value={formData.remarks}
             onChange={handleInputChange}
-            className="border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-md p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full "
+            className="border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full "
           />
         </div>
 
         {/* Attachments with Preview */}
-        <div className="mb-4 col-span-2 ">
+        <div className="mb-4 col-span-3 ">
           <div>
             <label htmlFor="files" className="block text-sm font-semibold mb-2">
               Attachments
@@ -370,7 +448,7 @@ const CreateInvoice = () => {
 
         <button
           type="submit"
-          className="col-span-1 md:col-span-2 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
+          className="col-span-1 md:col-span-1 w-full h-10 bg-blue-500 text-white py-2 rounded-[5px] hover:bg-blue-600 transition"
         >
           Submit
         </button>

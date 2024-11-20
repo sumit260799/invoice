@@ -18,6 +18,8 @@ const {
   updateExistingSR,
   updateServiceRequestStatus,
   getALlocatedRequestsForSpc,
+  getAllQuotationNumbers,
+  revokeBillingEditStatus,
 } = require('../controllers/serviceRequestController.js');
 const {
   serviceRequestValidationSchema,
@@ -57,8 +59,10 @@ router.post('/v1/allocate', allocateForQuotation);
 // router.post('/v1/allocate-invoice', allocateForInvoice);
 router.post('/v1/allocate-quotation-logs', getQuotationAllocationLogs);
 router.post('/v1/allocate-invoice-logs', getInvoiceAllocationLogs);
-router.post('/v1/update-existing-sr', updateExistingSR);
+router.put('/v1/update-existing-sr', updateExistingSR);
 router.post('/v1/get-allocated-spc', getALlocatedRequestsForSpc);
+router.get('/v1/get-quotationNo', getAllQuotationNumbers);
+router.put('/v1/revokeBillingEditStatus', revokeBillingEditStatus);
 router.use(errors());
 
 module.exports = router;

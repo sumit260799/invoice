@@ -5,7 +5,7 @@ import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import Admin from './Admin';
 import NotFound from './NotFound';
-
+import BillingEditStatus from './billingEditStatus';
 export {
   Home,
   Login,
@@ -14,4 +14,5 @@ export {
   ResetPassword,
   Admin,
   NotFound,
+  BillingEditStatus,
 };

@@ -43,7 +43,7 @@ const Login = () => {
         navigate(
           userRole === 'admin'
             ? '/admin'
-            : userRole === 'user'
+            : userRole === 'salesUser'
             ? '/'
             : `/${userRole}`
         );

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   employeeId: {
@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "manager", "spc", "user"],
+    enum: ['admin', 'billingManager', 'billingAgent', 'salesUser'],
   },
   otp: {
     type: String,
@@ -43,5 +43,5 @@ const userSchema = new mongoose.Schema({
 });
 
 // Exporting the User model
-const AdminCreateUser = mongoose.model("AdminCreateUser", userSchema);
+const AdminCreateUser = mongoose.model('AdminCreateUser', userSchema);
 module.exports = AdminCreateUser;

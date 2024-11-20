@@ -14,12 +14,10 @@ app.use(cookieparser());
 const authRoutes = require('./routes/authRoutes');
 const serviceRequestRoute = require('./routes/serviceRequestRoute');
 const adminCreateUserRoute = require('./routes/userRoutes');
-// const updateServiceRequestStatus = require('./services/cronUpdate');
+const updateServiceRequestStatus = require('./services/cronUpdate');
 // db connection..
 const connectDB = require('./db/url');
 connectDB();
-
-// Serve files from the 'uploads' directory
 
 // cors setup.....
 const corsOptions = {
@@ -27,7 +25,7 @@ const corsOptions = {
   credentials: true,
 };
 
-// updateServiceRequestStatus();
+updateServiceRequestStatus();
 app.use(cors(corsOptions));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // routes...

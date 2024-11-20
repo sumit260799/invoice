@@ -10,10 +10,10 @@ const PublicLayout = () => {
     if (user) {
       if (user.role === 'admin') {
         navigate('/admin');
-      } else if (user.role === 'manager') {
-        navigate('/manager');
-      } else if (user.role === 'spc') {
-        navigate('/spc');
+      } else if (user.role === 'billingManager') {
+        navigate('/billingManager');
+      } else if (user.role === 'billingAgent') {
+        navigate('/billingAgent');
       } else {
         navigate('/');
       }

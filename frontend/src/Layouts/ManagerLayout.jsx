@@ -9,7 +9,7 @@ const ManagerLayout = () => {
   const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
-    if (!user || user.role !== 'manager') {
+    if (!user || user.role !== 'billingManager') {
       navigate('/login');
     }
   }, [navigate, user]);

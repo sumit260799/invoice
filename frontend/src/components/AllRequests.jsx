@@ -70,10 +70,10 @@ const AllRequests = () => {
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
   const tableHeaders = [
-    { label: 'SrID', key: 'serviceRequestId' },
+    { label: 'BillingReqId', key: 'serviceRequestId' },
     { label: 'QuoteNo', key: 'quotationNo' },
     { label: 'QuoteStatus', key: 'quoteStatus' },
-    { label: 'SrStatus', key: 'srStatus' },
+    { label: 'BillingReq-Status', key: 'billingProgressStatus' },
     { label: 'remarks', key: 'remarks' },
     { label: 'Zone', key: 'zone' },
     { label: 'EquipSlNo', key: 'equipmentSerialNo' },
@@ -95,7 +95,6 @@ const AllRequests = () => {
 
   const openModal = invoice => {
     setSelectedInvoice(invoice);
-    console.log('hiiiii');
     setShowModal(true);
   };
 
@@ -159,15 +158,17 @@ const AllRequests = () => {
       return;
     }
 
-    // Set the action based on `srStatus`
+    // Set the action based on `billingProgressStatus`
     const action =
       selectedInvoice?.quoteStatus === 'BillingPending' &&
-      (selectedInvoice?.srStatus === 'PendingforInvoiceAllocation' ||
-        selectedInvoice?.srStatus === 'InvoicingInProgress')
+      (selectedInvoice?.billingProgressStatus ===
+        'PendingforInvoiceAllocation' ||
+        selectedInvoice?.billingProgressStatus === 'InvoicingInProgress')
         ? 'AllocationforInvoice'
-        : selectedInvoice?.srStatus === 'PendingForQuotationAllocation'
+        : selectedInvoice?.billingProgressStatus ===
+          'PendingForQuotationAllocation'
         ? 'AllocationforQuotation'
-        : selectedInvoice?.srStatus === 'QuotationInProgress'
+        : selectedInvoice?.billingProgressStatus === 'QuotationInProgress'
         ? 'ReallocationforQuotation'
         : 'ReallocationforInvoice';
 
@@ -229,7 +230,7 @@ const AllRequests = () => {
         <input
           type="text"
           placeholder="Search..."
-          className="w-[50%] border bg-gray-50 dark:bg-gray-800 dark:text-brandYellow text-gray-900 border-gray-300 p-2 rounded-lg focus:outline-none focus:border-brandYellow"
+          className="w-[50%] border bg-gray-50 dark:bg-gray-800 dark:text-brandYellow text-gray-900 border-gray-300 px-2 py-1 rounded-lg focus:outline-none focus:border-brandYellow"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />
@@ -245,7 +246,7 @@ const AllRequests = () => {
                   <th
                     key={key}
                     onClick={() => handleSort(key)}
-                    className={`p-2  text-left font-medium text-gray-700 cursor-pointer hover:border-r-2 hover:border-l-2 hover:border-gray-100`}
+                    className={`p-2 text-left font-medium text-gray-700 cursor-pointer whitespace-nowrap hover:border-r-2 hover:border-l-2 hover:border-gray-100`}
                   >
                     {label}
                     {sortConfig.key === key
@@ -272,11 +273,22 @@ const AllRequests = () => {
                     </td>
                     <td className="p-2">{invoice.quotationNo}</td>
                     <td className="p-2">
-                      {invoice.quoteStatus?.substring(0, 10)}..
+                      {invoice.quoteStatus?.substring(0, 15)}..
                     </td>
                     <td className="p-2">
-                      {invoice.srStatus?.substring(0, 10)}..
+                      {invoice.billingEditStatus === 'OnHold' ||
+                      invoice.billingEditStatus === 'Rejected' ? (
+                        <span className="text-green-500">
+                          {' '}
+                          {invoice.billingEditStatus}
+                        </span>
+                      ) : (
+                        <span>
+                          {invoice.billingProgressStatus?.substring(0, 18)}
+                        </span>
+                      )}
                     </td>
+
                     <td className="p-2">
                       {invoice.remarks?.substring(0, 8)}..
                     </td>
@@ -338,7 +350,7 @@ const AllRequests = () => {
         <button
           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 bg-brandYellow text-white rounded-lg disabled:opacity-50"
+          className="px-2 py-1 bg-brandYellow text-white rounded-sm text-sm disabled:opacity-50"
         >
           Previous
         </button>
@@ -348,20 +360,20 @@ const AllRequests = () => {
         <button
           onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-brandYellow text-white rounded-lg disabled:opacity-50"
+          className="px-2 py-1 bg-brandYellow text-white rounded-sm text-sm disabled:opacity-50"
         >
           Next
         </button>
       </div>
       {/* Modal to show invoice details */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="relative bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300  rounded-lg   h-[95vh] overflow-y-scroll custom-scrollbar shadow-lg border border-gray-300 dark:border-gray-700">
+        <div className="fixed inset-0  bg-opacity-60 backdrop-blur-sm flex justify-center items-center  z-50">
+          <div className="relative  bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300  rounded-lg   h-[95vh] overflow-y-scroll custom-scrollbar shadow-lg border border-gray-300 dark:border-gray-700">
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100"
+              className="absolute cursor-pointer top-4 right-4 text-gray-500 hover:text-gray-800 z-50 dark:text-gray-200 dark:hover:text-gray-100"
             >
-              <FaTimes className="text-2xl" />
+              <FaTimes className="text-2xl font-thin" />
             </button>
 
             <ServiceRequestDetails selectedInvoice={selectedInvoice} />

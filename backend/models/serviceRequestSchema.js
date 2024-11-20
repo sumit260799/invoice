@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const serviceRequestSchema = new mongoose.Schema({
   serviceRequestId: {
@@ -13,19 +13,19 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   industryDiv: {
     type: String,
-    enum: ["BCP", "GCI", "SEM", "Mining"],
+    enum: ['BCP', 'GCI', 'SEM', 'Mining'],
   },
   zone: {
     type: String,
     enum: [
-      "Zone1",
-      "Zone2",
-      "Zone3",
-      "Zone4",
-      "Zone5",
-      "Zone6",
-      "Zone7",
-      "Zone8",
+      'Zone1',
+      'Zone2',
+      'Zone3',
+      'Zone4',
+      'Zone5',
+      'Zone6',
+      'Zone7',
+      'Zone8',
     ],
   },
   equipmentSerialNo: {
@@ -45,7 +45,7 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "users",
+    ref: 'users',
   },
   remarks: {
     type: String,
@@ -59,27 +59,29 @@ const serviceRequestSchema = new mongoose.Schema({
   quoteStatus: {
     type: String,
     enum: [
-      "PendingRelease",
-      "ApprovalPending",
-      "BillingPending",
-      "Rejected",
-      "Billed",
+      'PendingRelease',
+      'ApprovalPending',
+      'BillingPending',
+      'Rejected',
+      'Billed',
     ],
     // default: 'PendingRelease',
   },
 
-  srStatus: {
+  billingProgressStatus: {
     type: String,
     enum: [
-      "PendingForQuotationAllocation",
-      "OnHold",
-      "Rejected",
-      "QuotationInProgress",
-      "PendingforInvoiceAllocation",
-      "InvoicingInProgress",
-      "Closed",
+      'PendingForQuotationAllocation',
+      'QuotationInProgress',
+      'PendingforInvoiceAllocation',
+      'InvoicingInProgress',
+      'Closed',
     ],
-    default: "PendingForQuotationAllocation",
+    // default: 'PendingForQuotationAllocation'
+  },
+  billingEditStatus: {
+    type: String,
+    enum: ['None', 'OnHold', 'Reject'],
   },
   allocatedTo_name: {
     type: String,
@@ -102,7 +104,7 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   reallocatedAt: {
     type: String,
-    ref: "AdminCreateUser",
+    ref: 'AdminCreateUser',
   },
   approvedAt: {
     type: Date,
@@ -121,34 +123,5 @@ const serviceRequestSchema = new mongoose.Schema({
   //     timestamps: true
 });
 
-// serviceRequestSchema.set('toObject', {
-//   transform: (doc, ret) => {
-//     // Create a new object in the desired field order
-//     return {
-//       serviceRequestId: ret.serviceRequestId,
-//       quotationNo: ret.quotationNo,
-//       industryDiv: ret.industryDiv,
-//       zone: ret.zone,
-//       equipmentSerialNo: ret.equipmentSerialNo,
-//       modelNo: ret.modelNo,
-//       customerName: ret.customerName,
-//       billingPlant: ret.billingPlant,
-//       salesUserOnBehalfOf: ret.salesUserOnBehalfOf,
-//       createdBy: ret.createdBy,
-//       remarks: ret.remarks,
-//       attachments: ret.attachments,
-//       status: ret.status,
-//       registeredAt: ret.registeredAt,
-//       allocatedTo: ret.allocatedTo,
-//       allocatedBy: ret.allocatedBy,
-//       allocatedAt: ret.allocatedAt,
-//       approvedAt: ret.approvedAt,
-//       releasedAt: ret.releasedAt,
-//       rejectedAt: ret.rejectedAt,
-//       lastUpdatedAt: ret.lastUpdatedAt,
-//     };
-//   },
-// });
-
-const ServiceRequest = mongoose.model("ServiceRequest", serviceRequestSchema);
+const ServiceRequest = mongoose.model('ServiceRequest', serviceRequestSchema);
 module.exports = ServiceRequest;
