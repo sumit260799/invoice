@@ -17,6 +17,7 @@ const AllRequests = () => {
   );
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
+  console.log('🚀 ~ AllRequests ~ user:', user);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -68,7 +69,6 @@ const AllRequests = () => {
   );
 
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
-
   const tableHeaders = [
     { label: 'BillingReqId', key: 'serviceRequestId' },
     { label: 'QuoteNo', key: 'quotationNo' },
@@ -84,11 +84,18 @@ const AllRequests = () => {
     { label: 'Files', key: 'attachments' },
     { label: 'Actions', key: 'actions' },
   ];
-
   const openRightSidebar = invoice => {
+    if (
+      invoice.billingEditStatus === 'OnHold' ||
+      invoice.billingEditStatus === 'Rejected'
+    ) {
+      toast.error('Cannot allocate invoices with status OnHold or Rejected');
+      return;
+    }
     setSelectedInvoice(invoice);
     setShowSidebar(true);
   };
+
   const closeSidebar = () => {
     setShowSidebar(false);
   };
@@ -179,6 +186,7 @@ const AllRequests = () => {
         name: inputValue.name,
         remarks: inputValue.remarks,
         action: action, // Use the dynamic action here
+        allocatedBy: user?._id,
       });
 
       if (response.status === 200) {
@@ -317,7 +325,7 @@ const AllRequests = () => {
 
                     <td className="p-2">
                       <button>
-                        <span className="flex gap-2">
+                        <div className="flex justify-center gap-2">
                           <span className="relative group">
                             <MdPreview
                               onClick={() => openModal(invoice)}
@@ -327,16 +335,18 @@ const AllRequests = () => {
                               View Details
                             </span>
                           </span>
-                          <span className="relative group">
-                            <MdAssignmentAdd
-                              onClick={() => openRightSidebar(invoice)}
-                              className="text-xl cursor-pointer"
-                            />
-                            <span className="absolute  z-50 left-1/2 transform -translate-x-1/2 -translate-y-11 w-max px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                              Allocate
+                          {user?.role !== 'salesUser' && (
+                            <span className="relative group">
+                              <MdAssignmentAdd
+                                onClick={() => openRightSidebar(invoice)}
+                                className="text-xl cursor-pointer"
+                              />
+                              <span className="absolute  z-50 left-1/2 transform -translate-x-1/2 -translate-y-11 w-max px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                Allocate
+                              </span>
                             </span>
-                          </span>
-                        </span>
+                          )}
+                        </div>
                       </button>
                     </td>
                   </tr>

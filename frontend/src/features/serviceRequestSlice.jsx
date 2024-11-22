@@ -1,6 +1,7 @@
 // src/features/serviceRequest/serviceRequestSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { get, post, put } from '../services/ApiEndpoint';
+
 // Create Async Thunk for fetching invoices
 export const fetchInvoices = createAsyncThunk(
   'invoices/fetchInvoices',
@@ -102,7 +103,27 @@ export const fetchServiceRequestByStatus = createAsyncThunk(
     }
   }
 );
+export const revokeBillingEditStatus = createAsyncThunk(
+  'serviceRequest/revokeBillingEditStatus',
+  async (serviceRequestId, { rejectWithValue }) => {
+    console.log('🚀 ~ serviceRequestId:', serviceRequestId);
+    try {
+      const response = await put('/api/user/v1/revokeBillingEditStatus', {
+        serviceRequestId,
+      });
 
+      console.log('🚀 ~ response:', response);
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error revoking billing status:', error);
+      return rejectWithValue(error.message || 'Something went wrong.');
+    }
+  }
+);
 // Create slice for invoices
 const serviceRequestSlice = createSlice({
   name: 'invoices',
@@ -294,6 +315,23 @@ const serviceRequestSlice = createSlice({
       .addCase(fetchServiceRequestByStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // revoke billing edit status
+      .addCase(revokeBillingEditStatus.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(revokeBillingEditStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        state.invoices = state.invoices.map(invoice =>
+          invoice.serviceRequestId === action.meta.arg
+            ? { ...invoice, billingEditStatus: 'None' }
+            : invoice
+        );
+      })
+      .addCase(revokeBillingEditStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to revoke billing status.';
       });
   },
 });

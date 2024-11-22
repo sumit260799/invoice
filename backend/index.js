@@ -25,7 +25,7 @@ const corsOptions = {
   credentials: true,
 };
 
-updateServiceRequestStatus();
+// updateServiceRequestStatus();
 app.use(cors(corsOptions));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // routes...

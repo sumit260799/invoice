@@ -10,6 +10,13 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   quoteStatus: {
     type: String,
+    enum: [
+      'PendingRelease',
+      'ApprovalPending',
+      'BillingPending',
+      'Rejected',
+      'Billed',
+    ],
   },
   industryDiv: {
     type: String,
@@ -50,12 +57,13 @@ const serviceRequestSchema = new mongoose.Schema({
   remarks: {
     type: String,
   },
-  files: [String], // Optional single file path
+  files: [String],
 
   registeredAt: {
     type: Date,
     default: Date.now,
   },
+
   quoteStatus: {
     type: String,
     enum: [
@@ -65,7 +73,6 @@ const serviceRequestSchema = new mongoose.Schema({
       'Rejected',
       'Billed',
     ],
-    // default: 'PendingRelease',
   },
 
   billingProgressStatus: {
@@ -77,35 +84,61 @@ const serviceRequestSchema = new mongoose.Schema({
       'InvoicingInProgress',
       'Closed',
     ],
-    // default: 'PendingForQuotationAllocation'
   },
+
   billingEditStatus: {
     type: String,
-    enum: ['None', 'OnHold', 'Reject'],
+    enum: ['None', 'OnHold', 'Rejected'],
   },
+
   allocatedTo_name: {
     type: String,
   },
   allocatedTo_email: {
     type: String,
   },
+  allocatedBy: {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
+    email: {
+      type: String,
+    },
+    role: {
+      type: String,
+    },
+  },
+
+  allocatedAt: {
+    type: Date,
+  },
+
   reallocatedTo_name: {
     type: String,
   },
   reallocatedTo_email: {
     type: String,
   },
-  allocatedBy: {
+  reallocatedBy: {
     type: String,
-    // ref: 'users'
-  },
-  allocatedAt: {
-    type: Date,
   },
   reallocatedAt: {
-    type: String,
-    ref: 'AdminCreateUser',
+    type: Date,
   },
+
+  allocationHistory: [
+    {
+      allocatedTo_name: String,
+      allocatedTo_email: String,
+      allocatedBy: String,
+      allocatedAt: Date,
+      reallocatedTo_name: String,
+      reallocatedTo_email: String,
+      reallocatedBy: String,
+      reallocatedAt: Date,
+    },
+  ],
+
   approvedAt: {
     type: Date,
   },
@@ -119,8 +152,6 @@ const serviceRequestSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  // }, {
-  //     timestamps: true
 });
 
 const ServiceRequest = mongoose.model('ServiceRequest', serviceRequestSchema);

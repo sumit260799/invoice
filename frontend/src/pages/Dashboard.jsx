@@ -10,14 +10,15 @@ import { MdCreateNewFolder } from 'react-icons/md';
 import { LuGalleryVerticalEnd } from 'react-icons/lu';
 import { RiBillFill } from 'react-icons/ri';
 import { CgProfile } from 'react-icons/cg';
-
+import { clearUser } from '../features/authSlice';
+import { useDispatch } from 'react-redux';
 const Dashboard = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { user } = useSelector(state => state.auth);
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
+  const dispatch = useDispatch();
   const [isDarkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('isDarkMode') === 'true';
   });
@@ -57,6 +58,7 @@ const Dashboard = () => {
       if (response && response.status === 200) {
         toast.success(response.data.message);
       }
+      await dispatch(clearUser());
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -163,6 +165,15 @@ const Dashboard = () => {
                     >
                       <LuGalleryVerticalEnd className="inline-block text-md mr-2" />
                       All Requests
+                    </Link>
+                  </li>
+                  <li className="">
+                    <Link
+                      to="/allocation-details"
+                      className={linkClasses('/allocation-details')}
+                    >
+                      <LuGalleryVerticalEnd className="inline-block text-md mr-2" />
+                      Allocation Details
                     </Link>
                   </li>
                 </>

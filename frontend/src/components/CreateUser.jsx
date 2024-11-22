@@ -34,7 +34,7 @@ const CreateUser = () => {
   };
 
   return (
-    <div className=" mx-auto  p-6 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-400 shadow-sm rounded-lg">
+    <div className=" mx-auto  py-6 px-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 shadow-sm rounded-lg">
       <h2 className="text-2xl font-bold mb-4">Employee Form</h2>
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -51,7 +51,7 @@ const CreateUser = () => {
             type="text"
             id="employeeId"
             {...register('employeeId', { required: 'Employee ID is required' })}
-            className={`border rounded-md p-2 w-full ${
+            className={`border rounded-md p-1 w-full ${
               errors.employeeId ? 'border-red-500' : 'border-gray-300'
             }`}
           />
@@ -68,7 +68,7 @@ const CreateUser = () => {
             type="text"
             id="name"
             {...register('name', { required: 'Name is required' })}
-            className={`border rounded-md p-2 w-full ${
+            className={`border rounded-md p-1 w-full ${
               errors.name ? 'border-red-500' : 'border-gray-300'
             }`}
           />
@@ -91,7 +91,7 @@ const CreateUser = () => {
                 message: 'Invalid email format',
               },
             })}
-            className={`border rounded-md p-2 w-full ${
+            className={`border rounded-md p-1 w-full ${
               errors.email ? 'border-red-500' : 'border-gray-300'
             }`}
           />
@@ -111,7 +111,7 @@ const CreateUser = () => {
             type="password"
             id="password"
             {...register('password', { required: 'Password is required' })}
-            className={`border rounded-md p-2 w-full ${
+            className={`border rounded-md p-1 w-full ${
               errors.password ? 'border-red-500' : 'border-gray-300'
             }`}
           />
@@ -134,7 +134,7 @@ const CreateUser = () => {
                 message: 'Invalid phone number',
               },
             })}
-            className={`border rounded-md p-2 w-full ${
+            className={`border rounded-md p-1 w-full ${
               errors.phone ? 'border-red-500' : 'border-gray-300'
             }`}
           />
@@ -150,7 +150,7 @@ const CreateUser = () => {
           <select
             id="role"
             {...register('role', { required: 'Role is required' })}
-            className={`border rounded-md p-3 w-full ${
+            className={`border rounded-md p-2 w-full ${
               errors.role ? 'border-red-500' : 'border-gray-300'
             }`}
           >

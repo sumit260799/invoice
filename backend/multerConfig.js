@@ -1,4 +1,3 @@
-// multerConfig.js
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -31,6 +30,11 @@ const uploadFiles = (req, res, next) => {
   upload(req, res, err => {
     if (err) {
       return res.status(400).json({ message: err.message });
+    }
+
+    // Check if files are present
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'No files uploaded.' });
     }
 
     const totalSize = req.files.reduce((acc, file) => acc + file.size, 0);

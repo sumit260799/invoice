@@ -15,7 +15,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { UserLayout, PublicLayout, AdminLayout } from './Layouts';
 import Dashboard from './pages/Dashboard';
-import { CreateUser } from './components/index';
+import { AllocationDetails, CreateUser } from './components/index';
 import CreateInvoice from './components/CreateInvoice';
 import AllocateServiceRequest from './components/AllocateServiceRequest';
 import ShowUsers from './components/ShowUsers';
@@ -61,7 +61,7 @@ function App() {
         </Route>
         <Route path="/" element={<PublicLayout />}>
           <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
+          {/* <Route path="register" element={<Register />} /> */}
         </Route>
         <Route path="/" element={<AdminLayout />}>
           {/* <Route index element={<Home />} /> */}
@@ -72,8 +72,8 @@ function App() {
         </Route>
         <Route path="/" element={<ManagerLayout />}>
           <Route path="billingManager" element={<Manager />} />
-
           <Route path="all-requests" element={<AllRequests />} />
+          <Route path="allocation-details" element={<AllocationDetails />} />
           {/* <Route
             path="/service-requests/:user/:serviceRequestId"
             element={<ServiceRequestDetails />}

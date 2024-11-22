@@ -81,7 +81,7 @@ const login = async (req, res) => {
 const logOut = async (req, res) => {
   try {
     res.clearCookie('pdi_cookie');
-    res.status(200).json({ message: 'user logout successfully' });
+    res.status(200).json({ message: 'logout successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'interanl server ereo' });
   }

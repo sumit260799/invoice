@@ -2,21 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaEdit, FaSave } from 'react-icons/fa';
 import { GrPowerReset } from 'react-icons/gr';
-
+import { revokeBillingEditStatus } from '../features/serviceRequestSlice';
 import { MdOutlineClose } from 'react-icons/md';
+import { Link, useParams } from 'react-router-dom';
+import { fetchServiceRequestByStatus } from '../features/serviceRequestSlice';
 import {
   fetchInvoices,
   fetchServiceRequest,
   updateServiceRequestStatus,
 } from '../features/serviceRequestSlice';
+import { Tooltip } from 'react-tooltip';
 
 const ServiceRequestDetails = ({ selectedInvoice }) => {
   const dispatch = useDispatch();
+  const { billingProgressStatus, quoteStatus } = useParams();
+
   const { details: invoice, loading } = useSelector(
     state => state.serviceRequest
   );
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
-  console.log('🚀 ~ ServiceRequestDetails ~ isModalOpen:', isModalOpen);
   const [isVisible, setIsVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('OnHold');
   const [remarks, setRemarks] = useState('');
@@ -48,6 +52,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
   const handleSrEditClick = () => {
     setIsEditing(true);
   };
+
   const handleStatusSubmit = async () => {
     if (!selectedStatus || !remarks.trim()) {
       alert('Both status and remarks are required.');
@@ -60,6 +65,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
     };
     await dispatch(updateServiceRequestStatus(payload));
     await dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
+    await dispatch(fetchServiceRequestByStatus(billingProgressStatus));
     await dispatch(fetchInvoices());
     setIsEditing(false);
   };
@@ -74,18 +80,20 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
       return;
     }
 
-    const payload = {
-      serviceRequestId: invoice.serviceRequestId,
-      [field]: fieldValues[field],
-    };
-
-    await dispatch(updateServiceRequestStatus(payload));
+    await dispatch(
+      updateServiceRequestStatus({ serviceRequestId: invoice.serviceRequestId })
+    );
     await dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
     setEditFields({ ...editFields, [field]: false });
   };
   const handleRevoke = async () => {
-    const payload = { serviceRequestId: invoice.serviceRequestId };
-    await dispatch(revokeServiceRequestStatus(payload));
+    const payload = { serviceRequestId: invoice.serviceRequestId }; // Correct payload structure
+    await dispatch(revokeBillingEditStatus(payload));
+    await dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
+    await dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
+    await dispatch(fetchInvoices());
+
+    setIsModalOpen(false);
   };
 
   return (
@@ -211,12 +219,21 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                     {invoice.billingProgressStatus !== 'Closed' && (
                       <>
                         <FaEdit
-                          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                          data-tooltip-id="edit-tooltip"
+                          data-tooltip-content="Edit"
+                          className="text-gray-500 outline-none dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                           onClick={handleSrEditClick}
                         />
+                        <Tooltip id="edit-tooltip" />
+
                         {invoice.billingEditStatus && (
                           <button onClick={() => setIsModalOpen(true)}>
-                            <GrPowerReset className="text-lg" />
+                            <GrPowerReset
+                              data-tooltip-id="revoke-tooltip"
+                              data-tooltip-content="Revoke Status"
+                              className="text-lg outline-none cursor-pointer"
+                            />
+                            <Tooltip id="revoke-tooltip" />
                           </button>
                         )}
                       </>

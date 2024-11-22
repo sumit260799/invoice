@@ -5,10 +5,11 @@ import {
   fetchInvoices,
   setSelectedZone,
 } from '../features/serviceRequestSlice';
+import LoadingSpinner from './LoadingSpinner';
 
 const StatusPage = () => {
   const dispatch = useDispatch();
-  const { statusCounts, selectedZone, invoices } = useSelector(
+  const { loading, statusCounts, selectedZone, invoices } = useSelector(
     state => state.serviceRequest
   );
   const zones = [
@@ -105,6 +106,9 @@ const StatusPage = () => {
     BillingPending: 'Billing Pending',
     Rejected: 'Rejected',
   };
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center rounded-lg">

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { get } from '../services/ApiEndpoint';
+import { get, post } from '../services/ApiEndpoint';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   fetchAllEmails,
   fetchServiceRequestByStatus,
+  fetchInvoices,
 } from '../features/serviceRequestSlice';
 import { FaFilePdf, FaTimes } from 'react-icons/fa';
 import { MdFolderZip, MdPreview, MdAssignmentAdd } from 'react-icons/md';
@@ -12,12 +13,14 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { ServiceRequestDetails } from '../components';
 import { SideBar } from '../components';
+import toast from 'react-hot-toast';
 
 const StatusDataPage = () => {
   const dispatch = useDispatch();
   const { loading, invoicesByStatus, emailList } = useSelector(
     state => state.serviceRequest
   );
+  console.log('🚀 ~ StatusDataPage ~ invoicesByStatus:', invoicesByStatus);
   const { billingProgressStatus, quoteStatus } = useParams();
 
   useEffect(() => {
@@ -70,11 +73,18 @@ const StatusDataPage = () => {
     return sortableInvoices;
   }, [invoicesByStatus, sortConfig]);
 
-  const filteredInvoices = sortedInvoices.filter(invoice =>
-    Object.values(invoice).some(val =>
-      val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredInvoices = sortedInvoices
+    .filter(
+      invoice =>
+        invoice.billingEditStatus !== 'OnHold' &&
+        invoice.billingEditStatus !== 'Rejected'
     )
-  );
+    .filter(invoice =>
+      Object.values(invoice).some(val =>
+        val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
   const paginatedInvoices = filteredInvoices.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage

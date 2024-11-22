@@ -17,7 +17,7 @@ const schema = z.object({
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [darkMode, setDarkMode] = useState(false); // State for dark mode
+  const [darkMode, setDarkMode] = useState(false);
 
   const {
     register,
@@ -28,7 +28,6 @@ const Login = () => {
     resolver: zodResolver(schema),
   });
 
-  // Check localStorage for dark mode preference on mount
   useEffect(() => {
     const isDarkMode = localStorage.getItem('isDarkMode') === 'true';
     setDarkMode(isDarkMode);
@@ -60,31 +59,37 @@ const Login = () => {
 
   return (
     <div
-      className={`${
-        darkMode ? 'bg-gray-800 text-gray-200' : 'bg-gray-50 text-gray-800'
-      } min-h-screen flex items-center justify-center`}
+      className={`relative min-h-screen flex items-center justify-center bg-cover bg-center ${
+        darkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-50 text-gray-800'
+      }`}
+      style={{
+        backgroundImage: `url('https://t4.ftcdn.net/jpg/01/19/11/55/360_F_119115529_mEnw3lGpLdlDkfLgRcVSbFRuVl6sMDty.jpg')`,
+      }}
     >
-      <section className="max-w-2xl w-full mx-auto p-6">
-        <div className="text-center mb-5 md:mb-10">
-          <h1 className="head-font text-3xl md:text-4xl underline">Invoice</h1>
-          <h4 className="text-xl font-semibold mt-2 md:mt-6">
-            Sign in to your account
-          </h4>
+      <div className="absolute inset-0 bg-black bg-opacity-50" />
+      <div className="relative z-10 max-w-lg w-full p-8  bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-blue-600">Invoice</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">
+            Sign in to access your account
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Email Field */}
           <div>
-            <label className="text-sm mb-2 block">Email Id</label>
+            <label className="text-sm mb-2 block font-medium">
+              Email Address
+            </label>
             <input
               {...register('email')}
               type="email"
-              className={`bg-gray-100 text-gray-800 dark:text-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
+              className={`w-full px-4 py-2 rounded-md shadow-sm outline-none focus:ring-1 transition-all text-gray-800 bg-gray-100 dark:bg-gray-700 dark:text-gray-100 border ${
                 errors.email
-                  ? 'ring-red-500'
-                  : 'ring-blue-500 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
               }`}
-              placeholder="Enter email"
+              placeholder="Enter your email"
+              autoComplete="off"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
@@ -93,18 +98,18 @@ const Login = () => {
             )}
           </div>
 
-          {/* Password Field */}
           <div>
-            <label className="text-sm mb-2 block">Password</label>
+            <label className="text-sm mb-2 block font-medium">Password</label>
             <input
               {...register('password')}
               type="password"
-              className={`bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 w-full text-sm px-4 py-3.5 rounded-md outline-none focus:ring-2 transition-all ${
+              className={`w-full px-4 py-2 rounded-md  shadow-sm outline-none focus:ring-1 transition-all text-gray-800 bg-gray-100 dark:bg-gray-700 dark:text-gray-100 border ${
                 errors.password
-                  ? 'ring-red-500'
-                  : 'ring-blue-500 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
               }`}
-              placeholder="Enter password"
+              placeholder="Enter your password"
+              autoComplete="off"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
@@ -113,7 +118,6 @@ const Login = () => {
             )}
           </div>
 
-          {/* Forgot Password */}
           <div className="text-right">
             <Link
               to="/forgot-password"
@@ -123,30 +127,16 @@ const Login = () => {
             </Link>
           </div>
 
-          {/* Submit Button */}
           <div>
             <button
               type="submit"
-              className="w-full py-3 px-6 text-sm font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+              className="w-full py-2 px-6 text-sm font-bold rounded-md outline-none bg-blue-600 text-white hover:bg-blue-700 focus:outline-none shadow-md"
             >
               Sign In
             </button>
           </div>
         </form>
-
-        {/* Register Link */}
-        <div className="text-center mt-4">
-          <p className="text-sm">
-            Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="font-semibold text-blue-600 hover:underline"
-            >
-              Register here
-            </Link>
-          </p>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };

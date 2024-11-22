@@ -6,6 +6,8 @@ import ServiceRequestDetails from './ServiceRequestDetails';
 import ShowUsers from './ShowUsers';
 import StatusPage from './StatusPage';
 import SideBar from './SideBar';
+import LoadingSpinner from './LoadingSpinner';
+import AllocationDetails from './AllocationDetails';
 export {
   CreateUser,
   AllocateServiceRequest,
@@ -15,4 +17,6 @@ export {
   ShowUsers,
   StatusPage,
   SideBar,
+  LoadingSpinner,
+  AllocationDetails,
 };
