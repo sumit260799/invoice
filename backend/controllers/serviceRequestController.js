@@ -1,13 +1,13 @@
-const express = require('express');
-const ServiceRequest = require('../models/serviceRequestSchema.js');
-const Counter = require('../models/counterModel.js');
-const AdminCreateUser = require('../models/AdminCreateUser.js');
-const QuoteModel = require('../models/quotationModel.js');
-const ChangeLog = require('../models/ChangeLogSchema.js');
+const express = require("express");
+const ServiceRequest = require("../models/serviceRequestSchema.js");
+const Counter = require("../models/counterModel.js");
+const QuoteModel = require("../models/quotationModel.js");
+const ChangeLog = require("../models/ChangeLogSchema.js");
 const {
   QuotationAllocationLog,
   InvoiceAllocationLog,
-} = require('../models/AllocationSchema.js');
+} = require("../models/AllocationSchema.js");
+const User = require("../models/UserModel.js");
 
 const quoteCreate = async (req, res) => {
   const {
@@ -45,12 +45,12 @@ const quoteCreate = async (req, res) => {
     // Save the document to the database
     const savedQuote = await newQuote.save();
     res.status(201).json({
-      message: 'Quote created successfully',
+      message: "Quote created successfully",
       data: savedQuote,
     });
   } catch (error) {
     res.status(500).json({
-      message: 'Failed to create quote',
+      message: "Failed to create quote",
       error: error.message,
     });
   }
@@ -70,10 +70,10 @@ const createServiceRequest = async (req, res) => {
       remarks,
       userId,
     } = req.body;
-    console.log('🚀 ~ createServiceRequest ~ req.body:', req.body);
+    console.log("🚀 ~ createServiceRequest ~ req.body:", req.body);
 
     // Retrieve uploaded file paths
-    const filePaths = req.files.map(file => file.filename);
+    const filePaths = req.files.map((file) => file.filename);
 
     // Check if service request already exists for the provided quotation number
     const existingSR = await ServiceRequest.findOne({ quotationNo });
@@ -86,7 +86,7 @@ const createServiceRequest = async (req, res) => {
     // Retrieve the existing quotation for the given quotation number
     const existingQuotation = await QuoteModel.findOne({ quotationNo });
     if (!existingQuotation) {
-      return res.status(404).json({ message: 'Quotation not found' });
+      return res.status(404).json({ message: "Quotation not found" });
     }
 
     if (!existingQuotation || !existingQuotation.createDate) {
@@ -96,12 +96,12 @@ const createServiceRequest = async (req, res) => {
     } else if (existingQuotation.createDate && !existingQuotation.billingDoc) {
       const getNextServiceRequestId = async () => {
         const counter = await Counter.findOneAndUpdate(
-          { name: 'SR' },
+          { name: "SR" },
           { $inc: { value: 1 } },
           { new: true, upsert: true }
         );
 
-        const paddedValue = String(counter.value).padStart(8, '0');
+        const paddedValue = String(counter.value).padStart(8, "0");
         const sr = counter.name + paddedValue;
         return sr;
       };
@@ -126,7 +126,7 @@ const createServiceRequest = async (req, res) => {
           files: filePaths,
           // quoteStatus,
           createdBy: userId,
-          billingProgressStatus: 'PendingForQuotationAllocation',
+          billingProgressStatus: "PendingForQuotationAllocation",
         });
 
         const changelogs = new ChangeLog({
@@ -165,7 +165,7 @@ const createServiceRequest = async (req, res) => {
           remarks,
           files: filePaths,
           // quoteStatus,
-          billingProgressStatus: 'PendingForQuotationAllocation',
+          billingProgressStatus: "PendingForQuotationAllocation",
         });
 
         await serviceRequest.save();
@@ -190,7 +190,7 @@ const createServiceRequest = async (req, res) => {
           remarks,
           files: filePaths,
           // quoteStatus,
-          billingProgressStatus: 'PendingforInvoiceAllocation',
+          billingProgressStatus: "PendingforInvoiceAllocation",
         });
 
         // Save the service request to the database
@@ -210,7 +210,7 @@ const createServiceRequest = async (req, res) => {
       return resMsg;
     }
   } catch (error) {
-    console.error('Error creating service request:', error);
+    console.error("Error creating service request:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -221,12 +221,12 @@ const getServiceRequest = async (req, res) => {
     if (!serviceRequestId) {
       return res
         .status(400)
-        .json({ message: 'Service Request ID is required!' });
+        .json({ message: "Service Request ID is required!" });
     }
 
     const serviceRequest = await ServiceRequest.findOne({
       serviceRequestId,
-    }).select('-_id -__v');
+    }).select("-_id -__v");
 
     if (!serviceRequest) {
       return res
@@ -254,7 +254,7 @@ const getServiceRequestByStatus = async (req, res) => {
 
     // Find service requests based on the filter
     const serviceRequests = await ServiceRequest.find(filter).select(
-      '-_id -__v'
+      "-_id -__v"
     );
 
     if (!serviceRequests || serviceRequests.length === 0) {
@@ -275,7 +275,7 @@ const getAllServiceRequest = async (req, res) => {
 
     // Check if there are any service requests
     if (serviceRequests.length === 0) {
-      return res.status(404).json({ message: 'No service requests found.' });
+      return res.status(404).json({ message: "No service requests found." });
     }
 
     // Send the service requests in the response
@@ -286,67 +286,61 @@ const getAllServiceRequest = async (req, res) => {
   }
 };
 const allocateServiceRequest = async (req, res) => {
-  try {
-    const { name, email, serviceRequestId, action, allocatedBy } = req.body;
-    const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
-    const user = await AdminCreateUser.findOne({
-      name,
-      email,
-      role: 'billingAgent',
-    });
-
-    if (!user) {
-      return res.status(404).json({ message: `${name} not found!` });
-    }
-
-    // Ensure the quote status is eligible
-    if (
-      (serviceRequest.quoteStatus == 'BillingPending' &&
-        serviceRequest.quoteStatus == 'Billed') ||
-      (serviceRequest.billingProgressStatus == 'PendingforInvoiceAllocation' &&
-        serviceRequest.billingProgressStatus == 'InvoicingInProgress')
-    ) {
-      return res.status(400).json({
-        message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
-          serviceRequest.quoteStatus
-        }`,
-      });
-    }
-
-    // Update Service Request
-    if (action === 'AllocationforQuotation') {
-      serviceRequest.allocatedTo_name = name;
-      serviceRequest.allocatedTo_email = email;
-      serviceRequest.billingProgressStatus = 'QuotationInProgress';
-      serviceRequest.allocatedAt = new Date();
-    } else if (action === 'ReallocationforQuotation') {
-      serviceRequest.reallocatedTo_name = name;
-      serviceRequest.reallocatedTo_email = email;
-      serviceRequest.billingProgressStatus = 'QuotationInProgress';
-      serviceRequest.reallocatedAt = new Date();
-    }
-    await serviceRequest.save();
-
-    // Log the action
-    const logEntry = new QuotationAllocationLog({
-      serviceRequestId,
-      // type,
-      action,
-      allocatedTo_name: name,
-      allocatedTo_email: email,
-      remarks,
-    });
-    await logEntry.save();
-
-    // }
-
-    res.status(200).json({
-      message: `Service Request ${serviceRequestId} allocated successfully for quotation.`,
-      logEntry,
-    });
-  } catch (error) {
-    next();
-  }
+  // try {
+  //   const { name, email, serviceRequestId, action, allocatedBy } = req.body;
+  //   const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
+  //   const user = await AdminCreateUser.findOne({
+  //     name,
+  //     email,
+  //     role: 'billingAgent',
+  //   });
+  //   if (!user) {
+  //     return res.status(404).json({ message: `${name} not found!` });
+  //   }
+  //   // Ensure the quote status is eligible
+  //   if (
+  //     (serviceRequest.quoteStatus == 'BillingPending' &&
+  //       serviceRequest.quoteStatus == 'Billed') ||
+  //     (serviceRequest.billingProgressStatus == 'PendingforInvoiceAllocation' &&
+  //       serviceRequest.billingProgressStatus == 'InvoicingInProgress')
+  //   ) {
+  //     return res.status(400).json({
+  //       message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
+  //         serviceRequest.quoteStatus
+  //       }`,
+  //     });
+  //   }
+  //   // Update Service Request
+  //   if (action === 'AllocationforQuotation') {
+  //     serviceRequest.allocatedTo_name = name;
+  //     serviceRequest.allocatedTo_email = email;
+  //     serviceRequest.billingProgressStatus = 'QuotationInProgress';
+  //     serviceRequest.allocatedAt = new Date();
+  //   } else if (action === 'ReallocationforQuotation') {
+  //     serviceRequest.reallocatedTo_name = name;
+  //     serviceRequest.reallocatedTo_email = email;
+  //     serviceRequest.billingProgressStatus = 'QuotationInProgress';
+  //     serviceRequest.reallocatedAt = new Date();
+  //   }
+  //   await serviceRequest.save();
+  //   // Log the action
+  //   const logEntry = new QuotationAllocationLog({
+  //     serviceRequestId,
+  //     // type,
+  //     action,
+  //     allocatedTo_name: name,
+  //     allocatedTo_email: email,
+  //     remarks,
+  //   });
+  //   await logEntry.save();
+  //   // }
+  //   res.status(200).json({
+  //     message: `Service Request ${serviceRequestId} allocated successfully for quotation.`,
+  //     logEntry,
+  //   });
+  // } catch (error) {
+  //   next();
+  // }
 };
 
 const getServiceRequestbyEmail = async (req, res) => {
@@ -355,8 +349,8 @@ const getServiceRequestbyEmail = async (req, res) => {
 
     const serviceRequest = await ServiceRequest.find({
       allocatedTo,
-      role: 'billingAgent',
-    }).select('-_id -__v');
+      role: "billingAgent",
+    }).select("-_id -__v");
 
     if (!serviceRequest) {
       return res.status(202).json({ message: `Not found!` });
@@ -374,12 +368,12 @@ const getServiceRequestbyEmail = async (req, res) => {
 const getAllName = async (req, res) => {
   try {
     // Fetching users with role 'billingAgent' and selecting 'empName' and 'email'
-    const allempData = await AdminCreateUser.find({
-      role: 'billingAgent',
-    }).select('-_id name email');
+    const allempData = await User.find({
+      role: "billingAgent",
+    }).select("-_id name email");
 
     // Mapping the data to include both empName and email in the response
-    const empList = allempData.map(user => ({
+    const empList = allempData.map((user) => ({
       name: user.name,
       email: user.email,
     }));
@@ -397,8 +391,8 @@ const dummyUpdateServiceRequestStatus = async (req, res) => {
 
     const allocatedRequest = await ServiceRequest.findOne({
       serviceRequestId,
-      billingProgressStatus: 'QuotationInprogress',
-    }).select('-_id -__v');
+      billingProgressStatus: "QuotationInprogress",
+    }).select("-_id -__v");
 
     if (!allocatedRequest) {
       return res.status(202).json({ message: `Not found!` });
@@ -406,144 +400,133 @@ const dummyUpdateServiceRequestStatus = async (req, res) => {
 
     // Check and update the status if it has changed in SAP
 
-    if (allocatedRequest.quoteStatus === 'ApprovalPending') {
-      allocatedRequest.billingProgressStatus = 'Pending';
+    if (allocatedRequest.quoteStatus === "ApprovalPending") {
+      allocatedRequest.billingProgressStatus = "Pending";
       allocatedRequest.approvedAt = new Date();
       await allocatedRequest.save();
-    } else if (allocatedRequest.quoteStatus === 'PendingRelease') {
-      allocatedRequest.billingProgressStatus = 'InProgress';
+    } else if (allocatedRequest.quoteStatus === "PendingRelease") {
+      allocatedRequest.billingProgressStatus = "InProgress";
       allocatedRequest.releasedAt = new Date();
       await allocatedRequest.save();
-    } else if (allocatedRequest.quoteStatus === 'Rejected') {
-      allocatedRequest.billingProgressStatus = 'InProgress';
+    } else if (allocatedRequest.quoteStatus === "Rejected") {
+      allocatedRequest.billingProgressStatus = "InProgress";
       allocatedRequest.rejectedAt = new Date();
       await allocatedRequest.save();
-    } else if (allocatedRequest.quoteStatus === 'Billed') {
-      allocatedRequest.billingProgressStatus = 'Closed';
+    } else if (allocatedRequest.quoteStatus === "Billed") {
+      allocatedRequest.billingProgressStatus = "Closed";
       allocatedRequest.billedAt = new Date();
       await allocatedRequest.save();
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 };
 const allocateForQuotation = async (req, res, next) => {
-  try {
-    const { serviceRequestId, name, email, remarks, action, allocatedBy } =
-      req.body;
-    // Find the service request
-    const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
-    if (!serviceRequest) {
-      return res
-        .status(404)
-        .json({ message: `Service Request ${serviceRequestId} not found!` });
-    }
-
-    const user = await AdminCreateUser.findOne({
-      name,
-      email,
-      role: 'billingAgent',
-    });
-
-    if (!user) {
-      return res.status(202).json({ message: `${name} not found!` });
-    }
-
-    if (
-      serviceRequest.quoteStatus == 'PendingRelease' ||
-      serviceRequest.quoteStatus == 'ApprovalPending' ||
-      (serviceRequest.billingProgressStatus ==
-        'PendingForQuotationAllocation' &&
-        serviceRequest.billingProgressStatus == 'QuotationInProgress')
-    ) {
-      // return res.status(400).json({
-      //   message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
-      //     serviceRequest.quoteStatus
-      //   }`,
-      // });
-
-      // Update Service Request
-      if (action === 'AllocationforQuotation') {
-        serviceRequest.allocatedTo_name = name;
-        serviceRequest.allocatedTo_email = email;
-        serviceRequest.billingProgressStatus = 'QuotationInProgress';
-        serviceRequest.allocatedAt = new Date();
-      } else if (action === 'ReallocationforQuotation') {
-        serviceRequest.reallocatedTo_name = name;
-        serviceRequest.reallocatedTo_email = email;
-        serviceRequest.billingProgressStatus = 'QuotationInProgress';
-        serviceRequest.reallocatedAt = new Date();
-      }
-      await serviceRequest.save();
-
-      // Log the action
-      const QuotationlogEntry = new QuotationAllocationLog({
-        serviceRequestId,
-        // type,
-        action,
-        allocatedTo_name: name,
-        allocatedTo_email: email,
-        remarks,
-      });
-      await QuotationlogEntry.save();
-
-      // }
-
-      res.status(200).json({
-        message: `Service Request ${serviceRequestId} allocated successfully for quotation.`,
-        QuotationlogEntry,
-      });
-    }
-
-    if (
-      serviceRequest.quoteStatus == 'BillingPending' && //serviceRequest.quoteStatus == 'Billed' ||
-      (serviceRequest.billingProgressStatus == 'PendingforInvoiceAllocation' ||
-        serviceRequest.billingProgressStatus == 'InvoicingInProgress')
-    ) {
-      // return res.status(400).json({
-      //   message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
-      //     serviceRequest.quoteStatus
-      //   }`,
-      // });
-
-      // Update Service Request
-      if (action === 'AllocationforInvoice') {
-        serviceRequest.allocatedTo_name = name;
-        serviceRequest.allocatedTo_email = email;
-        serviceRequest.billingProgressStatus = 'InvoicingInProgress';
-        serviceRequest.allocatedAt = new Date();
-      } else if (action === 'ReallocationforInvoice') {
-        serviceRequest.reallocatedTo_name = name;
-        serviceRequest.reallocatedTo_email = email;
-        serviceRequest.billingProgressStatus = 'InvoicingInProgress';
-        serviceRequest.reallocatedAt = new Date();
-      }
-      await serviceRequest.save();
-
-      // Log the action
-      const InvoicelogEntry = new InvoiceAllocationLog({
-        serviceRequestId,
-        type,
-        action,
-        allocatedTo_name,
-        allocatedTo_email,
-        remarks,
-      });
-      await InvoicelogEntry.save();
-
-      res.status(200).json({
-        message: `Service Request ${serviceRequestId} allocated successfully for invoice.`,
-        InvoicelogEntry,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
+  // try {
+  //   const { serviceRequestId, name, email, remarks, action, allocatedBy } =
+  //     req.body;
+  //   // Find the service request
+  //   const serviceRequest = await ServiceRequest.findOne({ serviceRequestId });
+  //   if (!serviceRequest) {
+  //     return res
+  //       .status(404)
+  //       .json({ message: `Service Request ${serviceRequestId} not found!` });
+  //   }
+  //   const user = await AdminCreateUser.findOne({
+  //     name,
+  //     email,
+  //     role: "billingAgent",
+  //   });
+  //   if (!user) {
+  //     return res.status(202).json({ message: `${name} not found!` });
+  //   }
+  //   if (
+  //     serviceRequest.quoteStatus == "PendingRelease" ||
+  //     serviceRequest.quoteStatus == "ApprovalPending" ||
+  //     (serviceRequest.billingProgressStatus ==
+  //       "PendingForQuotationAllocation" &&
+  //       serviceRequest.billingProgressStatus == "QuotationInProgress")
+  //   ) {
+  //     // return res.status(400).json({
+  //     //   message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
+  //     //     serviceRequest.quoteStatus
+  //     //   }`,
+  //     // });
+  //     // Update Service Request
+  //     if (action === "AllocationforQuotation") {
+  //       serviceRequest.allocatedTo_name = name;
+  //       serviceRequest.allocatedTo_email = email;
+  //       serviceRequest.billingProgressStatus = "QuotationInProgress";
+  //       serviceRequest.allocatedAt = new Date();
+  //     } else if (action === "ReallocationforQuotation") {
+  //       serviceRequest.reallocatedTo_name = name;
+  //       serviceRequest.reallocatedTo_email = email;
+  //       serviceRequest.billingProgressStatus = "QuotationInProgress";
+  //       serviceRequest.reallocatedAt = new Date();
+  //     }
+  //     await serviceRequest.save();
+  //     // Log the action
+  //     const QuotationlogEntry = new QuotationAllocationLog({
+  //       serviceRequestId,
+  //       // type,
+  //       action,
+  //       allocatedTo_name: name,
+  //       allocatedTo_email: email,
+  //       remarks,
+  //     });
+  //     await QuotationlogEntry.save();
+  //     // }
+  //     res.status(200).json({
+  //       message: `Service Request ${serviceRequestId} allocated successfully for quotation.`,
+  //       QuotationlogEntry,
+  //     });
+  //   }
+  //   if (
+  //     serviceRequest.quoteStatus == "BillingPending" && //serviceRequest.quoteStatus == 'Billed' ||
+  //     (serviceRequest.billingProgressStatus == "PendingforInvoiceAllocation" ||
+  //       serviceRequest.billingProgressStatus == "InvoicingInProgress")
+  //   ) {
+  //     // return res.status(400).json({
+  //     //   message: `Cannot ${action.toLowerCase()} for quoteStatus: ${
+  //     //     serviceRequest.quoteStatus
+  //     //   }`,
+  //     // });
+  //     // Update Service Request
+  //     if (action === "AllocationforInvoice") {
+  //       serviceRequest.allocatedTo_name = name;
+  //       serviceRequest.allocatedTo_email = email;
+  //       serviceRequest.billingProgressStatus = "InvoicingInProgress";
+  //       serviceRequest.allocatedAt = new Date();
+  //     } else if (action === "ReallocationforInvoice") {
+  //       serviceRequest.reallocatedTo_name = name;
+  //       serviceRequest.reallocatedTo_email = email;
+  //       serviceRequest.billingProgressStatus = "InvoicingInProgress";
+  //       serviceRequest.reallocatedAt = new Date();
+  //     }
+  //     await serviceRequest.save();
+  //     // Log the action
+  //     const InvoicelogEntry = new InvoiceAllocationLog({
+  //       serviceRequestId,
+  //       type,
+  //       action,
+  //       allocatedTo_name,
+  //       allocatedTo_email,
+  //       remarks,
+  //     });
+  //     await InvoicelogEntry.save();
+  //     res.status(200).json({
+  //       message: `Service Request ${serviceRequestId} allocated successfully for invoice.`,
+  //       InvoicelogEntry,
+  //     });
+  //   }
+  // } catch (error) {
+  //   next(error);
+  // }
 };
 const getQuotationAllocationLogs = async (req, res, next) => {
   try {
-    const logs = await QuotationAllocationLog.find({ type: 'Quotation' }).sort({
+    const logs = await QuotationAllocationLog.find({ type: "Quotation" }).sort({
       createdAt: -1,
     });
     res.status(200).json({ logs });
@@ -554,7 +537,7 @@ const getQuotationAllocationLogs = async (req, res, next) => {
 
 const getInvoiceAllocationLogs = async (req, res, next) => {
   try {
-    const logs = await InvoiceAllocationLog.find({ type: 'Invoice' }).sort({
+    const logs = await InvoiceAllocationLog.find({ type: "Invoice" }).sort({
       createdAt: -1,
     });
     res.status(200).json({ logs });
@@ -566,7 +549,7 @@ const updateServiceRequestStatus = async (req, res) => {
   try {
     // Fetch all service requests with status 'Allocated'
     const allocatedRequests = await ServiceRequest.find({
-      billingProgressStatus: 'Allocated',
+      billingProgressStatus: "Allocated",
     });
 
     for (const request of allocatedRequests) {
@@ -580,38 +563,38 @@ const updateServiceRequestStatus = async (req, res) => {
       // Check and update the status if it has changed in SAP
 
       if (
-        allocatedRequest.quoteStatus === 'PendingRelease' &&
-        request.quoteStatus === 'PendingRelease'
+        allocatedRequest.quoteStatus === "PendingRelease" &&
+        request.quoteStatus === "PendingRelease"
       ) {
-        request.billingProgressStatus = 'PendingforReallocation';
+        request.billingProgressStatus = "PendingforReallocation";
         request.approvedAt = new Date();
       } else if (
-        allocatedRequest.quoteStatus === 'ApprovalPending' &&
-        request.quoteStatus === 'ApprovalPending'
+        allocatedRequest.quoteStatus === "ApprovalPending" &&
+        request.quoteStatus === "ApprovalPending"
       ) {
-        request.billingProgressStatus = 'InProgress';
+        request.billingProgressStatus = "InProgress";
         request.releasedAt = new Date();
       } else if (
-        allocatedRequest.quoteStatus === 'Rejected' &&
-        request.quoteStatus === 'Rejected'
+        allocatedRequest.quoteStatus === "Rejected" &&
+        request.quoteStatus === "Rejected"
       ) {
-        request.billingProgressStatus = 'ReallocatedforInvoice';
+        request.billingProgressStatus = "ReallocatedforInvoice";
         request.rejectedAt = new Date();
       } else if (
-        allocatedRequest.quoteStatus === 'Billed' &&
-        request.quoteStatus === 'Billed'
+        allocatedRequest.quoteStatus === "Billed" &&
+        request.quoteStatus === "Billed"
       ) {
-        request.billingProgressStatus = 'Closed';
+        request.billingProgressStatus = "Closed";
         request.billedAt = new Date();
       }
 
       // Save only if the status was updated
-      if (request.isModified('billingProgressStatus')) {
+      if (request.isModified("billingProgressStatus")) {
         await request.save();
       }
     }
   } catch (error) {
-    console.error('Error updating service request statuses:', error);
+    console.error("Error updating service request statuses:", error);
   }
 };
 
@@ -687,7 +670,7 @@ const updateExistingSR = async (req, res) => {
     if (!serviceRequestId) {
       return res
         .status(200)
-        .json({ message: 'Service Request ID is required.' });
+        .json({ message: "Service Request ID is required." });
     }
 
     if (!remarks) {
@@ -697,10 +680,10 @@ const updateExistingSR = async (req, res) => {
     if (!billingRqstStatus) {
       return res
         .status(200)
-        .json({ message: 'Status (billingRqstStatus) is required.' });
+        .json({ message: "Status (billingRqstStatus) is required." });
     } else {
       // Allowed statuses for manual updates
-      if (!['OnHold', 'Rejected'].includes(billingRqstStatus)) {
+      if (!["OnHold", "Rejected"].includes(billingRqstStatus)) {
         return res.status(200).json({
           message: `Invalid billingRqstStatus. Allowed values are: OnHold, Rejected.`,
         });
@@ -713,7 +696,7 @@ const updateExistingSR = async (req, res) => {
           // $set: {
           billingEditStatus: billingRqstStatus,
           lastUpdatedAt: Date.now(), // Update the timestamp
-          remarks: remarks || '', // Optional field for logging manual changes
+          remarks: remarks || "", // Optional field for logging manual changes
           // },
         },
         { new: true } // Return the updated document
@@ -777,38 +760,38 @@ const getALlocatedRequestsForSpc = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ error: 'Email is required.' });
+      return res.status(400).json({ error: "Email is required." });
     }
     const requests = await ServiceRequest.find({ allocatedTo_email: email });
     if (requests.length === 0) {
       return res
         .status(404)
-        .json({ message: 'No allocated requests found for this email.' });
+        .json({ message: "No allocated requests found for this email." });
     }
 
     res.status(200).json({ success: true, data: requests });
   } catch (error) {
-    console.error('Error fetching allocated requests:', error);
-    res.status(500).json({ error: 'Internal server error.' });
+    console.error("Error fetching allocated requests:", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 };
 
 const getAllQuotationNumbers = async (req, res) => {
   try {
     // Fetch all documents from QuoteModel and select only the 'quotationNo' field
-    const quotationNumbers = await QuoteModel.find({}, 'quotationNo');
+    const quotationNumbers = await QuoteModel.find({}, "quotationNo");
 
     // Check if quotation numbers exist
     if (quotationNumbers.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No quotation numbers found',
+        message: "No quotation numbers found",
       });
     }
 
     // Add a check to see if each quotationNo exists in the ServiceRequest model
     const enhancedQuotationNumbers = await Promise.all(
-      quotationNumbers.map(async quote => {
+      quotationNumbers.map(async (quote) => {
         const existsInServiceRequest = await ServiceRequest.exists({
           quotationNo: quote.quotationNo,
         });
@@ -826,10 +809,10 @@ const getAllQuotationNumbers = async (req, res) => {
     });
   } catch (error) {
     // Handle errors
-    console.error('Error fetching quotation numbers:', error.message);
+    console.error("Error fetching quotation numbers:", error.message);
     res.status(500).json({
       success: false,
-      message: 'Internal Server Error',
+      message: "Internal Server Error",
       error: error.message,
     });
   }
@@ -843,24 +826,24 @@ const revokeBillingEditStatus = async (req, res) => {
     });
 
     if (!serviceRequest) {
-      return res.status(404).json({ message: 'Service request not found.' });
+      return res.status(404).json({ message: "Service request not found." });
     }
 
     if (
-      serviceRequest.billingEditStatus === 'OnHold' ||
-      serviceRequest.billingEditStatus === 'Rejected'
+      serviceRequest.billingEditStatus === "OnHold" ||
+      serviceRequest.billingEditStatus === "Rejected"
     ) {
-      serviceRequest.billingEditStatus = 'None'; // Clear the status
+      serviceRequest.billingEditStatus = "None"; // Clear the status
       await serviceRequest.save();
       return res
         .status(200)
-        .json({ message: 'Billing status revoked successfully.' });
+        .json({ message: "Billing status revoked successfully." });
     } else {
-      return res.status(400).json({ message: 'Cannot revoke this status.' });
+      return res.status(400).json({ message: "Cannot revoke this status." });
     }
   } catch (error) {
-    console.error('Error revoking billing status:', error);
-    return res.status(500).json({ message: 'Internal server error.' });
+    console.error("Error revoking billing status:", error);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 module.exports = {

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import {
   ResetPassword,
   ForgotPassword,
@@ -8,33 +8,33 @@ import {
   NotFound,
   Home,
   BillingEditStatus,
-} from './pages/index';
-import { Toaster } from 'react-hot-toast';
-import { updateUser } from './features/authSlice';
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { UserLayout, PublicLayout, AdminLayout } from './Layouts';
-import Dashboard from './pages/Dashboard';
-import { AllocationDetails, CreateUser } from './components/index';
-import CreateInvoice from './components/CreateInvoice';
-import AllocateServiceRequest from './components/AllocateServiceRequest';
-import ShowUsers from './components/ShowUsers';
-import ServiceRequestDetails from './components/ServiceRequestDetails';
-import ManagerLayout from './Layouts/ManagerLayout';
-import Manager from './pages/Manager';
-import SpcLayout from './Layouts/SpcLayout';
-import Spc from './pages/Spc';
-import AllRequests from './components/AllRequests';
-import StatusDataPage from './pages/StatusDataPage';
-import CommonLayout from './Layouts/CommonLayout';
-import CompletedTasks from './components/CompletedTasks';
+} from "./pages/index";
+import { Toaster } from "react-hot-toast";
+import { updateUser } from "./features/authSlice";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { UserLayout, PublicLayout, AdminLayout } from "./Layouts";
+import Dashboard from "./pages/Dashboard";
+import { AllocationDetails, CreateUser } from "./components/index";
+import CreateInvoice from "./components/CreateInvoice";
+import AllocateServiceRequest from "./components/AllocateServiceRequest";
+import ShowUsers from "./components/ShowUsers";
+import ServiceRequestDetails from "./components/ServiceRequestDetails";
+import ManagerLayout from "./Layouts/ManagerLayout";
+import Manager from "./pages/Manager";
+import SpcLayout from "./Layouts/SpcLayout";
+import Spc from "./pages/Spc";
+import AllRequests from "./components/AllRequests";
+import StatusDataPage from "./pages/StatusDataPage";
+import CommonLayout from "./Layouts/CommonLayout";
+import CompletedTasks from "./components/CompletedTasks";
 
 function App() {
   const dispatch = useDispatch();
-  const { user } = useSelector(state => state.auth);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(updateUser());
+    // dispatch(updateUser());
   }, [user]);
 
   return (
@@ -43,9 +43,9 @@ function App() {
         position="bottom-right"
         toastOptions={{
           style: {
-            padding: '8px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            borderRadius: '4px',
+            padding: "8px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+            borderRadius: "4px",
           },
         }}
       />
@@ -61,7 +61,7 @@ function App() {
         </Route>
         <Route path="/" element={<PublicLayout />}>
           <Route path="login" element={<Login />} />
-          {/* <Route path="register" element={<Register />} /> */}
+          <Route path="register" element={<Register />} />
         </Route>
         <Route path="/" element={<AdminLayout />}>
           {/* <Route index element={<Home />} /> */}
