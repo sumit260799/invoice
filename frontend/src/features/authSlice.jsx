@@ -17,6 +17,7 @@ const initialState = {
 export const updateUser = createAsyncThunk('auth/updateUser', async () => {
   try {
     const response = await get('/api/auth/checkUser');
+    console.log('🚀 ~ updateUser ~ response:', response);
     return response.data;
   } catch (error) {
     throw error;

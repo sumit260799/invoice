@@ -6,6 +6,7 @@ import ResetPassword from './ResetPassword';
 import Admin from './Admin';
 import NotFound from './NotFound';
 import BillingEditStatus from './billingEditStatus';
+import OtpInput from '../components/OtpInput';
 export {
   Home,
   Login,
@@ -15,4 +16,5 @@ export {
   Admin,
   NotFound,
   BillingEditStatus,
+  OtpInput,
 };

@@ -44,8 +44,6 @@ const updateServiceRequestStatus = async () => {
 
     const quotation = await QuoteModel.find();
 
-    console.log(quotation);
-
     for (const serviceRequest of serviceRequests) {
       const quote = await QuoteModel.findOne({
         quotationNo: serviceRequest.quotationNo,
@@ -71,13 +69,13 @@ const updateServiceRequestStatus = async () => {
         !quote.billingDoc
       ) {
         newStatus = 'PendingRelease';
-        console.log(newStatus);
-        console.log(
-          `For Pending Release`,
-          serviceRequest.billingProgressStatus
-        );
+        // console.log(newStatus);
+        // console.log(
+        //   `For Pending Release`,
+        //   serviceRequest.billingProgressStatus
+        // );
         newbillingProgressStatus = serviceRequest.billingProgressStatus;
-        console.log(newbillingProgressStatus);
+        // console.log(newbillingProgressStatus);
         if (
           !(
             (serviceRequest.billingEditStatus === 'OnHold' ||
@@ -87,14 +85,14 @@ const updateServiceRequestStatus = async () => {
           serviceRequest.billingProgressStatus === 'QuotationInProgress'
         ) {
           newbillingProgressStatus = 'PendingForQuotationAllocation';
-          console.log(`Executing if`, newbillingProgressStatus);
+          // console.log(`Executing if`, newbillingProgressStatus);
         } else if (
           (serviceRequest.billingEditStatus === 'OnHold' ||
             serviceRequest.billingEditStatus === 'Rejected') &&
           serviceRequest.billingProgressStatus === 'QuotationInProgress'
         ) {
           newbillingProgressStatus;
-          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
+          // console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
         }
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
@@ -104,10 +102,10 @@ const updateServiceRequestStatus = async () => {
             lastUpdatedAt: Date.now(),
           }
         );
-        console.log(
-          `For Pending Release newbillingProgressStatus`,
-          newbillingProgressStatus
-        );
+        // console.log(
+        //   `For Pending Release newbillingProgressStatus`,
+        //   newbillingProgressStatus
+        // );
       } else if (
         quote.releaseInd &&
         (!quote.approvalInd ||
@@ -117,10 +115,10 @@ const updateServiceRequestStatus = async () => {
         !quote.rejectInd
       ) {
         newStatus = 'ApprovalPending';
-        console.log(
-          `For Pending Approval`,
-          serviceRequest.billingProgressStatus
-        );
+        // console.log(
+        //   `For Pending Approval`,
+        //   serviceRequest.billingProgressStatus
+        // );
         // newbillingProgressStatus = '';
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
@@ -136,12 +134,12 @@ const updateServiceRequestStatus = async () => {
         !quote.billingDoc
       ) {
         newStatus = 'BillingPending';
-        console.log(
-          `For Pending Billing`,
-          serviceRequest.billingProgressStatus
-        );
+        // console.log(
+        //   `For Pending Billing`,
+        //   serviceRequest.billingProgressStatus
+        // );
         newbillingProgressStatus = serviceRequest.billingProgressStatus;
-        console.log(newbillingProgressStatus);
+        // console.log(newbillingProgressStatus);
         if (
           !(
             (serviceRequest.billingEditStatus === 'OnHold' ||
@@ -151,19 +149,19 @@ const updateServiceRequestStatus = async () => {
           serviceRequest.billingProgressStatus === 'InvoicingInProgress'
         ) {
           newbillingProgressStatus = 'PendingforInvoiceAllocation';
-          console.log(`Executing if`, newbillingProgressStatus);
+          // console.log(`Executing if`, newbillingProgressStatus);
         } else if (
           (serviceRequest.billingEditStatus === 'OnHold' ||
             serviceRequest.billingEditStatus === 'Rejected') &&
           serviceRequest.billingProgressStatus === 'InvoicingInProgress'
         ) {
           newbillingProgressStatus;
-          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
+          // console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
         }
-        console.log(
-          `For Pending Billing newbillingProgressStatus`,
-          newbillingProgressStatus
-        );
+        // console.log(
+        //   `For Pending Billing newbillingProgressStatus`,
+        //   newbillingProgressStatus
+        // );
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
@@ -174,9 +172,9 @@ const updateServiceRequestStatus = async () => {
         );
       } else if (quote.rejectInd) {
         newStatus = 'Rejected';
-        console.log(`For Rejected`, serviceRequest.billingProgressStatus);
+        // console.log(`For Rejected`, serviceRequest.billingProgressStatus);
         newbillingProgressStatus = serviceRequest.billingProgressStatus;
-        console.log(newbillingProgressStatus);
+        // console.log(newbillingProgressStatus);
         if (
           !(
             serviceRequest.billingEditStatus === 'OnHold' ||
@@ -189,12 +187,12 @@ const updateServiceRequestStatus = async () => {
           serviceRequest.billingEditStatus === 'Rejected'
         ) {
           newbillingProgressStatus;
-          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
+          // console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
         }
-        console.log(
-          `For Rejected newbillingProgressStatus`,
-          newbillingProgressStatus
-        );
+        // console.log(
+        //   `For Rejected newbillingProgressStatus`,
+        //   newbillingProgressStatus
+        // );
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
           {
@@ -217,7 +215,7 @@ const updateServiceRequestStatus = async () => {
           serviceRequest.billingEditStatus === 'Rejected'
         ) {
           newbillingProgressStatus;
-          console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
+          // console.log(`Executing if OnHold/Reject`, newbillingProgressStatus);
         }
         await ServiceRequest.updateOne(
           { serviceRequestId: serviceRequest.serviceRequestId },
@@ -229,7 +227,7 @@ const updateServiceRequestStatus = async () => {
         );
       }
 
-      console.log(`newbillingProgressStatus`, newbillingProgressStatus);
+      // console.log(`newbillingProgressStatus`, newbillingProgressStatus);
 
       // Update the service request only if the status has changed
       // if (serviceRequest.quoteStatus !== newStatus) {

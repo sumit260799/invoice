@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {
   ResetPassword,
   ForgotPassword,
@@ -8,30 +8,34 @@ import {
   NotFound,
   Home,
   BillingEditStatus,
-} from "./pages/index";
-import { Toaster } from "react-hot-toast";
-import { updateUser } from "./features/authSlice";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { UserLayout, PublicLayout, AdminLayout } from "./Layouts";
-import Dashboard from "./pages/Dashboard";
-import { AllocationDetails, CreateUser } from "./components/index";
-import CreateInvoice from "./components/CreateInvoice";
-import AllocateServiceRequest from "./components/AllocateServiceRequest";
-import ShowUsers from "./components/ShowUsers";
-import ServiceRequestDetails from "./components/ServiceRequestDetails";
-import ManagerLayout from "./Layouts/ManagerLayout";
-import Manager from "./pages/Manager";
-import SpcLayout from "./Layouts/SpcLayout";
-import Spc from "./pages/Spc";
-import AllRequests from "./components/AllRequests";
-import StatusDataPage from "./pages/StatusDataPage";
-import CommonLayout from "./Layouts/CommonLayout";
-import CompletedTasks from "./components/CompletedTasks";
+} from './pages/index';
+import { Toaster } from 'react-hot-toast';
+import { updateUser } from './features/authSlice';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { UserLayout, PublicLayout, AdminLayout } from './Layouts';
+import Dashboard from './pages/Dashboard';
+import { AllocationDetails, CreateUser } from './components/index';
+import CreateInvoice from './components/CreateInvoice';
+import AllocateServiceRequest from './components/AllocateServiceRequest';
+import ShowUsers from './components/ShowUsers';
+import ServiceRequestDetails from './components/ServiceRequestDetails';
+import ManagerLayout from './Layouts/ManagerLayout';
+import Manager from './pages/Manager';
+import SpcLayout from './Layouts/SpcLayout';
+import Spc from './pages/Spc';
+import AllRequests from './components/AllRequests';
+import StatusDataPage from './pages/StatusDataPage';
+import CommonLayout from './Layouts/CommonLayout';
+import CompletedTasks from './components/CompletedTasks';
+import PdiLayout from './pdi/layouts/PdiLayout';
+import PDI_Calls from './pdi/components/PDI_Calls';
+import { DashboardContent } from './pdi/components';
+import { CallList, EquipmentList, InspectorList } from './pdi/pages';
 
 function App() {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
     // dispatch(updateUser());
@@ -43,9 +47,9 @@ function App() {
         position="bottom-right"
         toastOptions={{
           style: {
-            padding: "8px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-            borderRadius: "4px",
+            padding: '8px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            borderRadius: '4px',
           },
         }}
       />
@@ -63,15 +67,15 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
         </Route>
-        <Route path="/" element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminLayout />}>
           {/* <Route index element={<Home />} /> */}
-          <Route path="admin" element={<Admin />} />
+          <Route index element={<Admin />} />
           <Route path="create-user" element={<CreateUser />} />
           <Route path="show-users" element={<ShowUsers />} />
           <Route path="service-requests" element={<AllRequests />} />
         </Route>
-        <Route path="/" element={<ManagerLayout />}>
-          <Route path="billingManager" element={<Manager />} />
+        <Route path="/billingManager" element={<ManagerLayout />}>
+          <Route index element={<Manager />} />
           <Route path="all-requests" element={<AllRequests />} />
           <Route path="allocation-details" element={<AllocationDetails />} />
           {/* <Route
@@ -104,7 +108,12 @@ function App() {
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="reset-password" element={<ResetPassword />} />
         </Route>
-
+        <Route path="/inspector" element={<PdiLayout />}>
+          <Route index element={<DashboardContent />} />
+          <Route path="inspector-list" element={<InspectorList />} />
+          <Route path="equipment-list" element={<EquipmentList />} />
+          <Route path="call-list" element={<CallList />} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

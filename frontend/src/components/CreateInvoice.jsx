@@ -1,28 +1,28 @@
-import React, { useRef, useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
-import axios from "axios";
-import { MdOutlineAttachFile } from "react-icons/md";
-import { RxCross2 } from "react-icons/rx";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchAllQuotationNo } from "../features/serviceRequestSlice";
+import React, { useRef, useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
+import axios from 'axios';
+import { MdOutlineAttachFile } from 'react-icons/md';
+import { RxCross2 } from 'react-icons/rx';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAllQuotationNo } from '../features/serviceRequestSlice';
 
 const CreateInvoice = () => {
   const dispatch = useDispatch();
   const containerRef = useRef(null);
-  const { quotationNoList } = useSelector((state) => state.serviceRequest);
-  const { user } = useSelector((state) => state.auth);
+  const { quotationNoList } = useSelector(state => state.serviceRequest);
+  const { user } = useSelector(state => state.auth);
 
   const [formData, setFormData] = useState({
-    quotationNo: "",
-    industryDiv: "",
-    zone: "",
-    equipmentSerialNo: "",
-    modelNo: "",
-    customerName: "",
-    billingPlant: "",
-    salesUserOnBehalfOf: "",
-    remarks: "",
-    userId: user?._id,
+    quotationNo: '',
+    industryDiv: '',
+    zone: '',
+    equipmentSerialNo: '',
+    modelNo: '',
+    customerName: '',
+    billingPlant: '',
+    salesUserOnBehalfOf: '',
+    remarks: '',
+    userId: user?.id,
   });
   const [errors, setErrors] = useState({});
   const [files, setFiles] = useState([]);
@@ -33,7 +33,7 @@ const CreateInvoice = () => {
   }, [dispatch]);
   // Function to handle outside click
   useEffect(() => {
-    const handleOutsideClick = (event) => {
+    const handleOutsideClick = event => {
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target)
@@ -41,19 +41,19 @@ const CreateInvoice = () => {
         setFilteredSuggestions([]); // Close dropdown
       }
     };
-    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener('mousedown', handleOutsideClick);
 
     return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener('mousedown', handleOutsideClick);
     };
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value } = e.target;
 
-    if (name === "quotationNo") {
+    if (name === 'quotationNo') {
       // Filter suggestions based on input value
-      const suggestions = quotationNoList.filter((q) =>
+      const suggestions = quotationNoList.filter(q =>
         q.quotationNo.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredSuggestions(suggestions);
@@ -62,78 +62,76 @@ const CreateInvoice = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = suggestion => {
     setFormData({ ...formData, quotationNo: suggestion });
     setFilteredSuggestions([]); // Clear suggestions after selection
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = e => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length + files.length > 8) {
-      toast.error("You can only select up to 8 files.");
+      toast.error('You can only select up to 8 files.');
     } else {
-      setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+      setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
     }
-    e.target.value = "";
+    e.target.value = '';
   };
 
-  const removeFile = (index) => {
-    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  const removeFile = index => {
+    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
   const validateForm = () => {
     const newErrors = {};
     if (!formData.quotationNo)
-      newErrors.quotationNo = "Quotation No is required";
+      newErrors.quotationNo = 'Quotation No is required';
     if (!formData.industryDiv)
-      newErrors.industryDiv = "Industry Division is required";
-    if (!formData.zone) newErrors.zone = "Zone is required";
+      newErrors.industryDiv = 'Industry Division is required';
+    if (!formData.zone) newErrors.zone = 'Zone is required';
     if (!formData.equipmentSerialNo)
-      newErrors.equipmentSerialNo = "Equipment Serial No is required";
-    if (!formData.modelNo) newErrors.modelNo = "Model No is required";
+      newErrors.equipmentSerialNo = 'Equipment Serial No is required';
+    if (!formData.modelNo) newErrors.modelNo = 'Model No is required';
     if (!formData.customerName)
-      newErrors.customerName = "Customer Name is required";
+      newErrors.customerName = 'Customer Name is required';
     if (!formData.billingPlant)
-      newErrors.billingPlant = "Billing Plant is required";
+      newErrors.billingPlant = 'Billing Plant is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (!validateForm()) return;
 
     const submitData = new FormData();
-    Object.keys(formData).forEach((key) =>
-      submitData.append(key, formData[key])
-    );
+    Object.keys(formData).forEach(key => submitData.append(key, formData[key]));
     for (let i = 0; i < files.length; i++) {
-      submitData.append("files", files[i]);
+      submitData.append('files', files[i]);
     }
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/user/create-service-request",
+        'http://localhost:5000/api/user/create-service-request',
         submitData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { 'Content-Type': 'multipart/form-data' },
         }
       );
       const result = response.status;
-      console.log("🚀 ~ handleSubmit ~ result:", result);
+      console.log('🚀 ~ handleSubmit ~ result:', result);
 
       if (response.status === 201) {
-        toast.success("Service Request created successfully!");
+        toast.success('Service Request created successfully!');
         setFormData({
-          quotationNo: "",
-          industryDiv: "",
-          zone: "",
-          equipmentSerialNo: "",
-          modelNo: "",
-          customerName: "",
-          billingPlant: "",
-          salesUserOnBehalfOf: "",
-          remarks: "",
+          quotationNo: '',
+          industryDiv: '',
+          zone: '',
+          equipmentSerialNo: '',
+          modelNo: '',
+          customerName: '',
+          billingPlant: '',
+          salesUserOnBehalfOf: '',
+          remarks: '',
         });
         setFiles([]);
         await dispatch(fetchAllQuotationNo());
@@ -141,8 +139,8 @@ const CreateInvoice = () => {
         toast.error(`Error: ${result.message}`);
       }
     } catch (error) {
-      console.error("Submission error:", error);
-      alert(error?.response?.data?.message || "Submission failed.");
+      console.error('Submission error:', error);
+      alert(error?.response?.data?.message || 'Submission failed.');
     }
   };
 
@@ -175,7 +173,7 @@ const CreateInvoice = () => {
                 onChange={handleInputChange}
                 onFocus={() => setFilteredSuggestions(quotationNoList)} // Show suggestions on focus
                 className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full pr-8 ${
-                  errors.quotationNo ? "border-red-500" : ""
+                  errors.quotationNo ? 'border-red-500' : ''
                 }`}
                 autoComplete="off"
               />
@@ -183,7 +181,7 @@ const CreateInvoice = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setFormData({ ...formData, quotationNo: "" });
+                    setFormData({ ...formData, quotationNo: '' });
                     setFilteredSuggestions([]);
                   }}
                   className="absolute text-[2rem] right-2 text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
@@ -236,7 +234,7 @@ const CreateInvoice = () => {
               value={formData.industryDiv}
               onChange={handleInputChange}
               className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
-                errors.industryDiv ? "border-red-500" : ""
+                errors.industryDiv ? 'border-red-500' : ''
               }`}
             >
               <option value="" disabled>
@@ -263,7 +261,7 @@ const CreateInvoice = () => {
               value={formData.zone}
               onChange={handleInputChange}
               className={` border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full ${
-                errors.zone ? "border-red-500" : ""
+                errors.zone ? 'border-red-500' : ''
               }`}
             >
               <option value="" disabled>
@@ -300,7 +298,7 @@ const CreateInvoice = () => {
               value={formData.equipmentSerialNo}
               onChange={handleInputChange}
               className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
-                errors.equipmentSerialNo ? "border-red-500" : ""
+                errors.equipmentSerialNo ? 'border-red-500' : ''
               }`}
               autoComplete="off"
             />
@@ -324,7 +322,7 @@ const CreateInvoice = () => {
               value={formData.modelNo}
               onChange={handleInputChange}
               className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none  w-full ${
-                errors.modelNo ? "border-red-500" : ""
+                errors.modelNo ? 'border-red-500' : ''
               }`}
               autoComplete="off"
             />
@@ -348,7 +346,7 @@ const CreateInvoice = () => {
               value={formData.customerName}
               onChange={handleInputChange}
               className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full ${
-                errors.customerName ? "border-red-500" : ""
+                errors.customerName ? 'border-red-500' : ''
               }`}
               autoComplete="off"
             />
@@ -358,7 +356,7 @@ const CreateInvoice = () => {
           </div>
         </div>
         <div className="gap-2 grid grid-cols-1  sm:grid-cols-2 ">
-          {" "}
+          {' '}
           {/* Billing Plant */}
           <div className="mb-4">
             <label
@@ -374,7 +372,7 @@ const CreateInvoice = () => {
               value={formData.billingPlant}
               onChange={handleInputChange}
               className={`border dark:border-gray-500 border-gray-300 focus:border-gray-400 dark:focus:border-gray-300 rounded-[5px] p-1 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 outline-none w-full ${
-                errors.billingPlant ? "border-red-500" : ""
+                errors.billingPlant ? 'border-red-500' : ''
               }`}
               autoComplete="off"
             />

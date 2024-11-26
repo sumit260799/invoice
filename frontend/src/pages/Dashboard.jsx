@@ -95,7 +95,7 @@ const Dashboard = () => {
                   </li>
                   <li className="">
                     <Link
-                      to="/create-user"
+                      to="/admin/create-user"
                       className={linkClasses('/create-user')}
                     >
                       <MdCreateNewFolder className="inline-block text-md mr-2" />
@@ -104,7 +104,7 @@ const Dashboard = () => {
                   </li>
                   <li className="">
                     <Link
-                      to="/show-users"
+                      to="/admin/show-users"
                       className={linkClasses('/show-users')}
                     >
                       <LuGalleryVerticalEnd className="inline-block text-md mr-2" />
@@ -113,7 +113,7 @@ const Dashboard = () => {
                   </li>
                   <li className="">
                     <Link
-                      to="/service-requests"
+                      to="/admin/service-requests"
                       className={linkClasses('/service-requests')}
                     >
                       <RiBillFill className="inline-block text-md mr-2" />
@@ -153,14 +153,17 @@ const Dashboard = () => {
               {user?.role === 'billingManager' && (
                 <>
                   <li className="">
-                    <Link to="/" className={linkClasses('/billingManager')}>
+                    <Link
+                      to="/billingManager"
+                      className={linkClasses('/billingManager')}
+                    >
                       <FaHome className="inline-block text-md mr-2" />
                       Home
                     </Link>
                   </li>
                   <li className="">
                     <Link
-                      to="/all-requests"
+                      to="/billingManager/all-requests"
                       className={linkClasses('/all-requests')}
                     >
                       <LuGalleryVerticalEnd className="inline-block text-md mr-2" />
@@ -169,7 +172,7 @@ const Dashboard = () => {
                   </li>
                   <li className="">
                     <Link
-                      to="/allocation-details"
+                      to="/billingManager/allocation-details"
                       className={linkClasses('/allocation-details')}
                     >
                       <LuGalleryVerticalEnd className="inline-block text-md mr-2" />

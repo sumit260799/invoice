@@ -1,13 +1,10 @@
 const express = require('express');
-const QuoteModel = require('../models/quotationModel.js');
-const ServiceRequest = require('../models/serviceRequestSchema.js');
-const Counter = require('../models/counterModel.js');
+const { isUser } = require('../middleware/verifyToken.js');
 const {
   createServiceRequest,
   getServiceRequest,
   getServiceRequestByStatus,
   getAllServiceRequest,
-  allocateServiceRequest,
   getAllName,
   dummyUpdateServiceRequestStatus,
   quoteCreate,
@@ -27,7 +24,6 @@ const {
   getServiceRequestValidation,
 } = require('../validations/serviceRequestValidation.js');
 const { celebrate, errors, Joi } = require('celebrate');
-// const authMiddleware = require('../middlewares/authMiddleware.js');
 const { uploadFiles } = require('../multerConfig.js');
 const router = express.Router();
 
@@ -36,9 +32,10 @@ const router = express.Router();
 // router.post('/get-quotation-data', sapData);
 router.post('/create-service-request', uploadFiles, createServiceRequest);
 
+// const authMiddleware = require('../middlewares/authMiddleware.js');
 router.post('/create-quotation', quoteCreate);
 
-router.get('/get-service-request', getAllServiceRequest);
+router.get('/get-service-request', isUser, getAllServiceRequest);
 router.get('/get-service-status', getServiceRequestByStatus);
 
 router.get(
@@ -47,15 +44,9 @@ router.get(
   getServiceRequest
 );
 
-router.post(
-  '/allocate',
-  // celebrate(allocateValidationSchema),
-  allocateServiceRequest
-);
-
 router.get('/v1/names', getAllName);
 router.put('/v1/dummyUpdateSR', dummyUpdateServiceRequestStatus);
-router.post('/v1/allocate', allocateForQuotation);
+router.post('/v1/allocate', isUser, allocateForQuotation);
 // router.post('/v1/allocate-invoice', allocateForInvoice);
 router.post('/v1/allocate-quotation-logs', getQuotationAllocationLogs);
 router.post('/v1/allocate-invoice-logs', getInvoiceAllocationLogs);

@@ -1,16 +1,17 @@
-const User = require("../models/UserModel");
+const User = require('../models/UserModel');
+const { sendUserEmail } = require('../middleware/UserEmail');
 
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const saltRounds = 10;
 const JWT_SECRET = process.env.JWT_SECRET;
-const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const otpStore = {};
 // Helper to generate a random 6-digit OTP
 const generateOtp = () => crypto.randomInt(100000, 999999).toString();
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -19,16 +20,15 @@ const transporter = nodemailer.createTransport({
 
 const createUser = async (req, res) => {
   const { employeeId, name, email, phone, role } = req.body;
-  console.log("🚀 ---------------------------------🚀");
-  console.log("🚀  createUser  req.body", req.body);
-  console.log("🚀 ---------------------------------🚀");
 
   try {
-    const existingUser = await User.findOne({ name, email, role });
+    // Check if email is already in use
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email already exists!" });
+      return res.status(400).json({ message: 'Email already exists!' });
     }
 
+    // Create a new user
     const user = new User({
       employeeId,
       name,
@@ -38,39 +38,66 @@ const createUser = async (req, res) => {
     });
 
     await user.save();
-    res.status(201).json({ message: "User created successfully!" });
+    res.status(201).json({ message: 'User created successfully!' });
+
+    // Send email notification (use try-catch to handle email sending errors)
+    try {
+      await sendUserEmail(
+        email,
+        'User Create Notification',
+        `Hello ${name}, your account has been created successfully!\n Your role is : ${role} \n\nRegards,\nYour Team`
+      );
+    } catch (emailError) {
+      console.error('Error sending email:', emailError.message);
+      // Optionally log email errors, but don't fail the response
+    }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Server error occurred.' });
   }
 };
+
 const getUsers = async (req, res) => {
   try {
     const users = await User.find();
     // If no users are found, send a 404 response
     if (users.length === 0) {
-      return res.status(404).json({ message: "No users found" });
+      return res.status(404).json({ message: 'No users found' });
     }
 
     // Sending the users data in the response
-    res.status(200).json({ message: "Users fetched successfully", users });
+    res.status(200).json({ message: 'Users fetched successfully', users });
   } catch (error) {
     // Handling errors with a 500 response
     res
       .status(500)
-      .json({ message: "Failed to fetch users", error: error.message });
+      .json({ message: 'Failed to fetch users', error: error.message });
   }
 };
+
+const deleteUser = async (req, res) => {
+  const { id } = req.body; // Extract user ID from the request body
+  try {
+    // Find and delete the user by ID
+    const deletedUser = await User.findByIdAndDelete(id);
+    // If no user is found, send a 404 error
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found!' });
+    }
+    // Respond with success message
+    res.status(200).json({ message: 'User deleted successfully!' });
+  } catch (error) {
+    // Handle potential errors
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Send OTP API
 const sendOtp = async (req, res) => {
   const { email } = req.body;
-  console.log("🚀 ------------------------------🚀");
-  console.log("🚀  sendOtp  req.body", req.body);
-  console.log("🚀 ------------------------------🚀");
-
   const user = await User.findOne({ email });
 
   if (!user) {
-    return res.status(404).json({ message: "Email ID not found" });
+    return res.status(404).json({ message: 'Email ID not found' });
   }
 
   const otp = generateOtp();
@@ -81,32 +108,28 @@ const sendOtp = async (req, res) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "Your Login OTP",
+    subject: 'Your Login OTP',
     text: `Your OTP is: ${otp}`,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error("Error sending OTP:", error);
-      return res.status(500).json({ message: "Error sending OTP" });
+      console.error('Error sending OTP:', error);
+      return res.status(500).json({ message: 'Error sending OTP' });
     } else {
-      res.status(200).json({ message: "OTP sent successfully" });
+      res.status(200).json({ message: 'OTP sent successfully' });
     }
   });
 };
-
 // Verify OTP API
 const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
-  console.log("🚀 --------------------------------🚀");
-  console.log("🚀  verifyOtp  req.body", req.body);
-  console.log("🚀 --------------------------------🚀");
 
   // Check if OTP exists for the email
   if (!otpStore[email] || otpStore[email].otp !== otp) {
     return res.status(400).json({
       success: false,
-      message: "Invalid OTP or OTP expired",
+      message: 'Invalid OTP or OTP expired',
     });
   }
 
@@ -117,7 +140,7 @@ const verifyOtp = async (req, res) => {
     delete otpStore[email];
     return res.status(400).json({
       success: false,
-      message: "OTP expired",
+      message: 'OTP expired',
     });
   }
 
@@ -128,12 +151,12 @@ const verifyOtp = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     // Define expiration time for the token
-    const expiresIn = "12h"; // Token valid for 12 hours
+    const expiresIn = '12h'; // Token valid for 12 hours
 
     // Generate JWT token
     const token = jwt.sign(
@@ -146,7 +169,7 @@ const verifyOtp = async (req, res) => {
     delete otpStore[email];
 
     // Send response
-    res.cookie("pdi_cookie", token, {
+    res.cookie('pdi_cookie', token, {
       httpOnly: true,
       secure: false,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
@@ -154,7 +177,7 @@ const verifyOtp = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Login successful",
+      message: 'Login successful',
       existUser: {
         id: user._id,
         email: user.email,
@@ -164,33 +187,30 @@ const verifyOtp = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error("Error verifying OTP:", error);
+    console.error('Error verifying OTP:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
     });
   }
 };
-
 const logOut = async (req, res) => {
   try {
-    res.clearCookie("pdi_cookie");
-    res.status(200).json({ message: "logout successfully" });
+    res.clearCookie('pdi_cookie');
+    res.status(200).json({ message: 'logout successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: "interanl server ereo" });
+    res.status(500).json({ success: false, message: 'interanl server ereo' });
   }
 };
-
 const checkUser = async (req, res) => {
   try {
     const user = req.user;
     if (!user) {
-      res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: 'User not found' });
     }
-    delete user.password;
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: "internal server error" });
+    res.status(500).json({ message: 'internal server error' });
     console.log(error);
   }
 };
@@ -198,6 +218,7 @@ const checkUser = async (req, res) => {
 module.exports = {
   createUser,
   getUsers,
+  deleteUser,
   sendOtp,
   verifyOtp,
   logOut,
