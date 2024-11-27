@@ -1,17 +1,17 @@
 // src/features/serviceRequest/serviceRequestSlice.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { get, post, put } from '../services/ApiEndpoint';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { get, post, put } from "../services/ApiEndpoint";
 
 // Create Async Thunk for fetching invoices
 export const fetchInvoices = createAsyncThunk(
-  'invoices/fetchInvoices',
+  "invoices/fetchInvoices",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await get('/api/user/get-service-request');
+      const response = await get("/api/user/get-service-request");
       if (response.status === 200) {
         return response.data?.serviceRequests || [];
       } else {
-        throw new Error('Failed to fetch invoices');
+        throw new Error("Failed to fetch invoices");
       }
     } catch (error) {
       return rejectWithValue(error.message);
@@ -19,33 +19,33 @@ export const fetchInvoices = createAsyncThunk(
   }
 );
 export const fetchAllEmails = createAsyncThunk(
-  'emails/fetchAllEmails',
+  "emails/fetchAllEmails",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await get('/api/user/v1/names');
+      const response = await get("/api/user/v1/names");
       return response.data?.empList; // Assuming response.data.empList is the list of emails
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch emails'
+        error.response?.data?.message || "Failed to fetch emails"
       );
     }
   }
 );
 export const fetchAllQuotationNo = createAsyncThunk(
-  'emails/fetchAllQuotationNo',
+  "emails/fetchAllQuotationNo",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await get('/api/user/v1/get-quotationNo');
+      const response = await get("/api/user/v1/get-quotationNo");
       return response.data?.data; // Assuming response.data.empList is the list of emails
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch emails'
+        error.response?.data?.message || "Failed to fetch emails"
       );
     }
   }
 );
 export const fetchServiceRequest = createAsyncThunk(
-  'serviceRequest/fetchDetails',
+  "serviceRequest/fetchDetails",
   async (serviceRequestId, thunkAPI) => {
     try {
       const response = await get(
@@ -59,74 +59,75 @@ export const fetchServiceRequest = createAsyncThunk(
 );
 // Async thunk for updating service request status
 export const updateServiceRequestStatus = createAsyncThunk(
-  'serviceRequest/updateStatus',
+  "serviceRequest/updateStatus",
   async (payload, thunkAPI) => {
     try {
-      const response = await put('/api/user/v1/update-existing-sr', payload);
+      const response = await put("/api/user/v1/update-existing-sr", payload);
       return response.data;
     } catch (error) {
-      console.log('🚀 ~ error:', error);
+      console.log("🚀 ~ error:", error);
       return thunkAPI.rejectWithValue(error.message);
     }
   }
 );
 
 export const fetchAllocatedRequests = createAsyncThunk(
-  'requests/fetchAllocatedRequests',
+  "requests/fetchAllocatedRequests",
   async (email, { rejectWithValue }) => {
     try {
-      const response = await post('/api/user/v1/get-allocated-spc', { email }); // Send email in the body
+      const response = await post("/api/user/v1/get-allocated-spc", { email }); // Send email in the body
       return response.data.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || 'An error occurred'
+        err.response?.data?.message || "An error occurred"
       );
     }
   }
 );
 // fetch service request by status
 export const fetchServiceRequestByStatus = createAsyncThunk(
-  'serviceRequests/fetch',
+  "serviceRequests/fetch",
   async ({ billingProgressStatus, quoteStatus }, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
       if (billingProgressStatus)
-        queryParams.append('billingProgressStatus', billingProgressStatus);
-      if (quoteStatus) queryParams.append('quoteStatus', quoteStatus);
+        queryParams.append("billingProgressStatus", billingProgressStatus);
+      if (quoteStatus) queryParams.append("quoteStatus", quoteStatus);
 
       const response = await get(
         `/api/user/get-service-status?${queryParams.toString()}`
       );
       return response.data.serviceRequests;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Failed to fetch data');
+      return rejectWithValue(error.response?.data || "Failed to fetch data");
     }
   }
 );
 export const revokeBillingEditStatus = createAsyncThunk(
-  'serviceRequest/revokeBillingEditStatus',
+  "serviceRequest/revokeBillingEditStatus",
   async (serviceRequestId, { rejectWithValue }) => {
-    console.log('🚀 ~ serviceRequestId:', serviceRequestId);
+    console.log("🚀 ~ serviceRequestId:", serviceRequestId);
     try {
-      const response = await put('/api/user/v1/revokeBillingEditStatus', {
-        serviceRequestId,
-      });
+      const response = await put(
+        "/api/user/v1/revokeBillingEditStatus",
+        serviceRequestId
+      );
 
-      console.log('🚀 ~ response:', response);
+      console.log("🚀 ~ response:", response);
       if (response.status === 200) {
         return response.data;
       } else {
         return rejectWithValue(response.data.message);
       }
     } catch (error) {
-      console.error('Error revoking billing status:', error);
-      return rejectWithValue(error.message || 'Something went wrong.');
+      console.error("Error revoking billing status:", error);
+      return rejectWithValue(error.message || "Something went wrong.");
     }
   }
 );
 // Create slice for invoices
 const serviceRequestSlice = createSlice({
-  name: 'invoices',
+  name: "invoices",
   initialState: {
     invoices: [],
     invoicesByStatus: [],
@@ -138,7 +139,7 @@ const serviceRequestSlice = createSlice({
       billingEditCounts: {},
     },
     spcAllocated: [],
-    selectedZone: 'All',
+    selectedZone: "All",
     loading: false,
     error: null,
   },
@@ -147,17 +148,17 @@ const serviceRequestSlice = createSlice({
       state.selectedZone = action.payload;
 
       const filteredInvoices =
-        state.selectedZone === 'All'
+        state.selectedZone === "All"
           ? state.invoices
           : state.invoices.filter(
-              invoice => invoice.zone === state.selectedZone
+              (invoice) => invoice.zone === state.selectedZone
             );
 
       const srCounts = {};
       const quoteCounts = {};
       const billingEditCounts = {};
 
-      filteredInvoices.forEach(invoice => {
+      filteredInvoices.forEach((invoice) => {
         const { billingProgressStatus, quoteStatus, billingEditStatus } =
           invoice;
 
@@ -185,9 +186,9 @@ const serviceRequestSlice = createSlice({
     },
   },
 
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
-      .addCase(fetchInvoices.pending, state => {
+      .addCase(fetchInvoices.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -200,7 +201,7 @@ const serviceRequestSlice = createSlice({
         const quoteCounts = {};
         const billingEditCounts = {};
 
-        action.payload.forEach(invoice => {
+        action.payload.forEach((invoice) => {
           const { billingProgressStatus, quoteStatus, billingEditStatus } =
             invoice;
 
@@ -210,8 +211,8 @@ const serviceRequestSlice = createSlice({
 
           // Only count srStatus and quoteStatus if billingEditStatus is not "OnHold" or "Rejected"
           if (
-            billingEditStatus !== 'OnHold' &&
-            billingEditStatus !== 'Rejected'
+            billingEditStatus !== "OnHold" &&
+            billingEditStatus !== "Rejected"
           ) {
             if (billingProgressStatus) {
               srCounts[billingProgressStatus] =
@@ -235,7 +236,7 @@ const serviceRequestSlice = createSlice({
         state.error = action.payload;
       })
       //   fetch emails
-      .addCase(fetchAllEmails.pending, state => {
+      .addCase(fetchAllEmails.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -249,7 +250,7 @@ const serviceRequestSlice = createSlice({
       })
 
       //   fetch all quotation no
-      .addCase(fetchAllQuotationNo.pending, state => {
+      .addCase(fetchAllQuotationNo.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -262,7 +263,7 @@ const serviceRequestSlice = createSlice({
         state.error = action.payload;
       })
       // Fetch service request
-      .addCase(fetchServiceRequest.pending, state => {
+      .addCase(fetchServiceRequest.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -275,7 +276,7 @@ const serviceRequestSlice = createSlice({
         state.error = action.payload;
       })
       // Update service request status
-      .addCase(updateServiceRequestStatus.pending, state => {
+      .addCase(updateServiceRequestStatus.pending, (state) => {
         state.loading = true;
       })
       .addCase(updateServiceRequestStatus.fulfilled, (state, action) => {
@@ -290,7 +291,7 @@ const serviceRequestSlice = createSlice({
         state.error = action.payload;
       })
       // for allocated spc
-      .addCase(fetchAllocatedRequests.pending, state => {
+      .addCase(fetchAllocatedRequests.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -304,7 +305,7 @@ const serviceRequestSlice = createSlice({
       })
 
       // fetch service request by status
-      .addCase(fetchServiceRequestByStatus.pending, state => {
+      .addCase(fetchServiceRequestByStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -317,21 +318,21 @@ const serviceRequestSlice = createSlice({
         state.error = action.payload;
       })
       // revoke billing edit status
-      .addCase(revokeBillingEditStatus.pending, state => {
+      .addCase(revokeBillingEditStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(revokeBillingEditStatus.fulfilled, (state, action) => {
         state.loading = false;
-        state.invoices = state.invoices.map(invoice =>
+        state.invoices = state.invoices.map((invoice) =>
           invoice.serviceRequestId === action.meta.arg
-            ? { ...invoice, billingEditStatus: 'None' }
+            ? { ...invoice, billingEditStatus: "None" }
             : invoice
         );
       })
       .addCase(revokeBillingEditStatus.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to revoke billing status.';
+        state.error = action.payload || "Failed to revoke billing status.";
       });
   },
 });

@@ -1,29 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { FaEdit, FaSave } from 'react-icons/fa';
-import { GrPowerReset } from 'react-icons/gr';
-import { revokeBillingEditStatus } from '../features/serviceRequestSlice';
-import { MdOutlineClose } from 'react-icons/md';
-import { Link, useParams } from 'react-router-dom';
-import { fetchServiceRequestByStatus } from '../features/serviceRequestSlice';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { FaEdit, FaSave } from "react-icons/fa";
+import { GrPowerReset } from "react-icons/gr";
+import { revokeBillingEditStatus } from "../features/serviceRequestSlice";
+import { MdOutlineClose } from "react-icons/md";
+import { Link, useParams } from "react-router-dom";
+import { fetchServiceRequestByStatus } from "../features/serviceRequestSlice";
 import {
   fetchInvoices,
   fetchServiceRequest,
   updateServiceRequestStatus,
-} from '../features/serviceRequestSlice';
-import { Tooltip } from 'react-tooltip';
+} from "../features/serviceRequestSlice";
+import { Tooltip } from "react-tooltip";
 
 const ServiceRequestDetails = ({ selectedInvoice }) => {
   const dispatch = useDispatch();
   const { billingProgressStatus, quoteStatus } = useParams();
 
   const { details: invoice, loading } = useSelector(
-    state => state.serviceRequest
+    (state) => state.serviceRequest
   );
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState('OnHold');
-  const [remarks, setRemarks] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState("OnHold");
+  const [remarks, setRemarks] = useState("");
 
   const [editFields, setEditFields] = useState({
     equipmentSerialNo: false,
@@ -32,8 +32,8 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const [fieldValues, setFieldValues] = useState({
-    equipmentSerialNo: '',
-    modelNo: '',
+    equipmentSerialNo: "",
+    modelNo: "",
   });
 
   useEffect(() => {
@@ -55,7 +55,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
 
   const handleStatusSubmit = async () => {
     if (!selectedStatus || !remarks.trim()) {
-      alert('Both status and remarks are required.');
+      alert("Both status and remarks are required.");
       return;
     }
     const payload = {
@@ -74,7 +74,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
     setFieldValues({ ...fieldValues, [field]: value });
   };
 
-  const handleSave = async field => {
+  const handleSave = async (field) => {
     if (!fieldValues[field].trim()) {
       alert(`${field} cannot be empty.`);
       return;
@@ -89,6 +89,10 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
   const handleRevoke = async () => {
     const payload = { serviceRequestId: invoice.serviceRequestId }; // Correct payload structure
     await dispatch(revokeBillingEditStatus(payload));
+    console.log("🚀 ---------------------------------🚀");
+    console.log("🚀  handleRevoke  payload", payload);
+    console.log("🚀 ---------------------------------🚀");
+
     await dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
     await dispatch(fetchServiceRequest(selectedInvoice.serviceRequestId));
     await dispatch(fetchInvoices());
@@ -101,7 +105,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
       {invoice ? (
         <div
           className={`transform w-[80vw] lg:w-[50vw]  transition-all duration-500 ease-in-out ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           } p-6`}
         >
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
@@ -144,13 +148,13 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                       type="text"
                       className="p-2 w-[200px] border rounded bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-brandYellow"
                       value={fieldValues.equipmentSerialNo}
-                      onChange={e =>
-                        handleFieldChange('equipmentSerialNo', e.target.value)
+                      onChange={(e) =>
+                        handleFieldChange("equipmentSerialNo", e.target.value)
                       }
                     />
                     <button
                       className="px-2 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-                      onClick={() => handleSave('equipmentSerialNo')}
+                      onClick={() => handleSave("equipmentSerialNo")}
                     >
                       <FaSave />
                     </button>
@@ -175,7 +179,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                       className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                       onClick={() =>
                         handleEditClick(
-                          'equipmentSerialNo',
+                          "equipmentSerialNo",
                           invoice.equipmentSerialNo
                         )
                       }
@@ -204,8 +208,8 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                   <>
                     <span className="text-base text-gray-800 dark:text-gray-300 font-medium">
                       <div className="">
-                        {invoice.billingEditStatus === 'OnHold' ||
-                        invoice.billingEditStatus === 'Rejected' ? (
+                        {invoice.billingEditStatus === "OnHold" ||
+                        invoice.billingEditStatus === "Rejected" ? (
                           <span className="text-green-500">
                             {invoice.billingEditStatus}
                           </span>
@@ -216,7 +220,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                         )}
                       </div>
                     </span>
-                    {invoice.billingProgressStatus !== 'Closed' && (
+                    {invoice.billingProgressStatus !== "Closed" && (
                       <>
                         <FaEdit
                           data-tooltip-id="edit-tooltip"
@@ -244,7 +248,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                     <select
                       className="py-2 px-1 text-sm border rounded bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-1 outline-none focus:ring-brandYellow"
                       value={selectedStatus}
-                      onChange={e => setSelectedStatus(e.target.value)}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                       <option value="OnHold">OnHold</option>
                       <option value="Rejected">Rejected</option>
@@ -255,7 +259,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                       placeholder="Add remarks..."
                       rows="2"
                       value={remarks}
-                      onChange={e => setRemarks(e.target.value)}
+                      onChange={(e) => setRemarks(e.target.value)}
                     ></textarea>
 
                     <div className="flex space-x-3 mt-3">
@@ -288,13 +292,13 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                       type="text"
                       className="p-2 w-[200px] border rounded bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-brandYellow"
                       value={fieldValues.modelNo}
-                      onChange={e =>
-                        handleFieldChange('modelNo', e.target.value)
+                      onChange={(e) =>
+                        handleFieldChange("modelNo", e.target.value)
                       }
                     />
                     <button
                       className="px-3 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-                      onClick={() => handleSave('modelNo')}
+                      onClick={() => handleSave("modelNo")}
                     >
                       <FaSave />
                     </button>
@@ -315,7 +319,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                     <FaEdit
                       className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                       onClick={() =>
-                        handleEditClick('modelNo', invoice.modelNo)
+                        handleEditClick("modelNo", invoice.modelNo)
                       }
                     />
                   </>
@@ -336,7 +340,7 @@ const ServiceRequestDetails = ({ selectedInvoice }) => {
                 Remarks
               </p>
               <p className="text-base text-gray-800 dark:text-gray-300 font-medium">
-                {invoice.remarks || 'N/A'}
+                {invoice.remarks || "N/A"}
               </p>
             </div>
 
